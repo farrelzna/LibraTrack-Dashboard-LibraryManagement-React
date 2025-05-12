@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { saveAs } from 'file-saver';
 import axios from "axios";
 import Swal from "sweetalert2";
 import Modal from '../../components/Modal';
+import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
+
+const API_URL = "http://45.64.100.26:88/perpus-api/public/api";
 
 export default function BooksIndex() {
     const [books, setBooks] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({
         no_rak: "",
         judul: "",
@@ -17,12 +22,14 @@ export default function BooksIndex() {
     });
 
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    // Modal states
     const [showAddModal, setShowAddModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
-
     const [editForm, setEditForm] = useState({
         no_rak: "",
         judul: "",
@@ -33,28 +40,43 @@ export default function BooksIndex() {
         detail: "",
     });
 
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortConfig, setSortConfig] = useState({
+        key: null,
+        direction: 'ascending'
+    });
+
+    const [view, setView] = useState('grid');
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [pageSize, setPageSize] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [exportLoading, setExportLoading] = useState(false);
+    const [showExportDropdown, setShowExportDropdown] = useState(false);
+
+    const navigate = useNavigate();
+
     useEffect(() => {
         fetchBooks();
     }, []);
 
     const fetchBooks = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(
-                "http://45.64.100.26:88/perpus-api/public/api/buku",
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-                        Accept: "application/json",
-                    },
+        const getToken = localStorage.getItem("token");
+        axios
+            .get(`${API_URL}/buku`, {
+                headers: { Authorization: `Bearer ${getToken}` },
+            })
+            .then((res) => {
+                console.log("Response API:", res.data); // Debug
+                setBooks(res.data); // Fix struktur
+            })
+            .catch((err) => {
+                if (err.response?.status === 401) {
+                    navigate("/login");
+                } else {
+                    setError(err.response?.data || {});
                 }
-            );
-            setBooks(response.data);
-            setError("");
-        } catch (err) {
-            setError("Gagal mengambil data buku.");
-        }
-        setLoading(false);
+            });
     };
 
     // Handle form input change (Tambah)
@@ -102,7 +124,7 @@ export default function BooksIndex() {
         }
     };
 
-    // Ambil detail buku untuk modal detail dan edit
+
     const handleDetail = async (id) => {
         try {
             const response = await axios.get(
@@ -148,7 +170,6 @@ export default function BooksIndex() {
         }
     };
 
-    // Handle form input change (Edit)
     const handleEditChange = (e) => {
         setEditForm({
             ...editForm,
@@ -156,7 +177,6 @@ export default function BooksIndex() {
         });
     };
 
-    // Submit update buku
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -186,13 +206,11 @@ export default function BooksIndex() {
         }
     };
 
-    // Update the handleDelete function
     const handleDelete = (id) => {
         setSelectedBook(books.find(book => book.id === id));
         setShowDeleteModal(true);
     };
 
-    // Add the actual delete function
     const confirmDelete = async () => {
         try {
             await axios.delete(
@@ -213,6 +231,469 @@ export default function BooksIndex() {
         }
     };
 
+    // Add these functions after your existing functions
+    const sortBooks = (books, sortConfig) => {
+        if (!sortConfig.key) return books;
+
+        return [...books].sort((a, b) => {
+            if (a[sortConfig.key] < b[sortConfig.key]) {
+                return sortConfig.direction === 'ascending' ? -1 : 1;
+            }
+            if (a[sortConfig.key] > b[sortConfig.key]) {
+                return sortConfig.direction === 'ascending' ? 1 : -1;
+            }
+            return 0;
+        });
+    };
+
+    const SortIcon = ({ direction }) => {
+        if (!direction) {
+            return (
+                <svg className="w-4 h-4 ml-1 inline-block text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+            );
+        }
+
+        return direction === 'ascending' ? (
+            <svg className="w-4 h-4 ml-1 inline-block text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+            </svg>
+        ) : (
+            <svg className="w-4 h-4 ml-1 inline-block text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        );
+    };
+
+    const requestSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const filteredBooks = React.useMemo(() => {
+        return sortBooks(books, sortConfig).filter((book) =>
+            book.judul.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            book.pengarang.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            book.no_rak.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            book.penerbit.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            book.tahun_terbit.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [books, searchTerm, sortConfig]);
+
+    const handleBulkDelete = async () => {
+        if (window.confirm(`Are you sure you want to delete ${selectedRows.length} books?`)) {
+            setLoading(true);
+            try {
+                await Promise.all(selectedRows.map(id =>
+                    axios.delete(`${API_URL}/buku/${id}`, {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+                    })
+                ));
+                Swal.fire("Success", `Successfully deleted ${selectedRows.length} books`, "success");
+                setSelectedRows([]);
+                fetchBooks();
+            } catch (err) {
+                Swal.fire("Error", "Failed to delete books", "error");
+            }
+            setLoading(false);
+        }
+    };
+
+    const handleExportData = async (format) => {
+        try {
+            setExportLoading(true);
+            const exportData = filteredBooks.map(book => ({
+                'Rack Number': book.no_rak || '',
+                'Title': book.judul || '',
+                'Author': book.pengarang || '',
+                'Publisher': book.penerbit || '',
+                'Publication Year': book.tahun_terbit || '',
+                'Stock': book.stok || '',
+                'Detail': book.detail || ''
+            }));
+
+            const fileName = `books-${new Date().toISOString().split('T')[0]}`;
+
+            if (format === 'csv') {
+                const csv = Papa.unparse(exportData);
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                saveAs(blob, `${fileName}.csv`);
+            } else if (format === 'excel') {
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Books");
+                XLSX.writeFile(wb, `${fileName}.xlsx`);
+            }
+
+            Swal.fire("Success", `Successfully exported data as ${format.toUpperCase()}`, "success");
+        } catch (error) {
+            console.error('Export error:', error);
+            Swal.fire("Error", `Failed to export data: ${error.message}`, "error");
+        } finally {
+            setExportLoading(false);
+            setShowExportDropdown(false);
+        }
+    };
+
+    const calculateStats = () => {
+        const total = books.length;
+        const newThisMonth = books.filter(m =>
+            new Date(m.created_at).getMonth() === new Date().getMonth()
+        ).length;
+        return { total, newThisMonth };
+    };
+
+    const GridView = ({ books, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows }) => {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {books.map((book) => (
+                    <div key={book.id} className="relative group">
+                        {/* Checkbox for selection - positioned top right */}
+                        <div className="absolute top-2 right-2 z-20">
+                            <input
+                                type="checkbox"
+                                checked={selectedRows.includes(book.id)}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setSelectedRows(prev => [...prev, book.id]);
+                                    } else {
+                                        setSelectedRows(prev => prev.filter(id => id !== book.id));
+                                    }
+                                }}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        {/* Book Card */}
+                        <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden h-full flex flex-col">
+                            {/* Book Cover */}
+                            <div className="relative h-64 bg-gradient-to-br from-blue-600 to-blue-700 p-4 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black opacity-10"></div>
+                                <div className="relative w-40 h-56 bg-white rounded shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-300">
+                                    <div className="absolute inset-0 border-2 border-gray-200 rounded"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                                        <div className="text-center">
+                                            <div className="font-bold text-gray-800 mb-2 line-clamp-2">{book.judul}</div>
+                                            <div className="text-sm text-gray-600">{book.pengarang}</div>
+                                        </div>
+                                    </div>
+                                    {/* Book spine effect */}
+                                    <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-gray-200 to-transparent"></div>
+                                </div>
+                            </div>
+
+                            {/* Book Information */}
+                            <div className="p-4 flex-1 flex flex-col">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                                        Rack: {book.no_rak}
+                                    </span>
+                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                                        Stock: {book.stok}
+                                    </span>
+                                </div>
+
+                                <div className="space-y-2 flex-1">
+                                    <h3 className="font-semibold text-gray-800 line-clamp-2">{book.judul}</h3>
+                                    <p className="text-sm text-gray-600">By {book.pengarang}</p>
+                                    <div className="flex items-center text-sm text-gray-500">
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        {book.penerbit}
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-500">
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        {book.tahun_terbit}
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-2">
+                                    <button
+                                        onClick={() => handleDetail(book.id)}
+                                        className="flex items-center justify-center px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        View
+                                    </button>
+                                    <button
+                                        onClick={() => handleEdit(book.id)}
+                                        className="flex items-center justify-center px-3 py-1.5 text-sm bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(book.id)}
+                                        className="flex items-center justify-center px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const TableView = ({ books, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows, sortConfig, requestSort }) => {
+        return (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                                <input
+                                    type="checkbox"
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setSelectedRows(books.map(book => book.id));
+                                        } else {
+                                            setSelectedRows([]);
+                                        }
+                                    }}
+                                    checked={selectedRows.length === books.length}
+                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                            </th>
+                            <th
+                                onClick={() => requestSort('no_rak')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            >
+                                <div className="flex items-center">
+                                    Rack Number
+                                    <SortIcon direction={sortConfig.key === 'no_rak' ? sortConfig.direction : null} />
+                                </div>
+                            </th>
+                            <th
+                                onClick={() => requestSort('judul')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            >
+                                <div className="flex items-center">
+                                    Title
+                                    <SortIcon direction={sortConfig.key === 'judul' ? sortConfig.direction : null} />
+                                </div>
+                            </th>
+                            <th
+                                onClick={() => requestSort('pengarang')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            >
+                                <div className="flex items-center">
+                                    Author
+                                    <SortIcon direction={sortConfig.key === 'pengarang' ? sortConfig.direction : null} />
+                                </div>
+                            </th>
+                            <th
+                                onClick={() => requestSort('penerbit')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            >
+                                <div className="flex items-center">
+                                    Publisher
+                                    <SortIcon direction={sortConfig.key === 'penerbit' ? sortConfig.direction : null} />
+                                </div>
+                            </th>
+                            <th
+                                onClick={() => requestSort('tahun_terbit')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            >
+                                <div className="flex items-center">
+                                    Year
+                                    <SortIcon direction={sortConfig.key === 'tahun_terbit' ? sortConfig.direction : null} />
+                                </div>
+                            </th>
+                            <th
+                                onClick={() => requestSort('stok')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            >
+                                <div className="flex items-center">
+                                    Stock
+                                    <SortIcon direction={sortConfig.key === 'stok' ? sortConfig.direction : null} />
+                                </div>
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {books.map((book) => (
+                            <tr key={book.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedRows.includes(book.id)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedRows(prev => [...prev, book.id]);
+                                            } else {
+                                                setSelectedRows(prev => prev.filter(id => id !== book.id));
+                                            }
+                                        }}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {book.no_rak}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {book.judul}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {book.pengarang}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {book.penerbit}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {book.tahun_terbit}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {book.stok}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => handleDetail(book.id)}
+                                            className="text-blue-600 hover:text-blue-900"
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => handleEdit(book.id)}
+                                            className="text-yellow-600 hover:text-yellow-900"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(book.id)}
+                                            className="text-red-600 hover:text-red-900"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    // First, add this pagination calculation function before the return statement
+    const paginateBooks = (books, currentPage, pageSize) => {
+        const indexOfLastBook = currentPage * pageSize;
+        const indexOfFirstBook = indexOfLastBook - pageSize;
+        return books.slice(indexOfFirstBook, indexOfLastBook);
+    };
+
+    const paginatedBooks = paginateBooks(filteredBooks, currentPage, pageSize);
+
+    // Button click handlers with notifications
+    const handleViewChange = (newView) => {
+        setView(newView);
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: 'success',
+            title: `Switched to ${newView} view`
+        });
+    };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+        
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: 'success',
+            title: `Sorted by ${key} ${direction}ending`
+        });
+    };
+
+    // Pagination handling with notifications
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: 'info',
+            title: `Page ${page}`
+        });
+    };
+
+    const handlePageSizeChange = (e) => {
+        const newSize = Number(e.target.value);
+        setPageSize(newSize);
+        setCurrentPage(1);
+        
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: 'info',
+            title: `Showing ${newSize} entries per page`
+        });
+    };
+
+    const handleSearch = (searchTerm) => {
+        setSearchTerm(searchTerm);
+        
+        if (searchTerm) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            });
+            Toast.fire({
+                icon: 'info',
+                title: `Searching for "${searchTerm}"`
+            });
+        }
+    };
+    
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
             {/* Header Section */}
@@ -227,7 +708,7 @@ export default function BooksIndex() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600">Total Books</p>
-                            <h3 className="text-2xl font-bold text-gray-800">{books.length}</h3>
+                            <h3 className="text-2xl font-bold text-gray-800">{calculateStats().total}</h3>
                         </div>
                         <div className="p-3 bg-blue-100 rounded-full">
                             <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,24 +716,42 @@ export default function BooksIndex() {
                             </svg>
                         </div>
                     </div>
+                    <p className="text-sm text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
                 </div>
             </div>
 
             {/* Action Bar */}
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex-1 min-w-[260px] max-w-md">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search books..."
+                                value={searchTerm}
+                                onChange={(e) => handleSearch(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="flex items-center space-x-2">
                         <button
-                            // onClick={() => setView('table')}
-                            // className={`p-2 rounded-lg ${view === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
+                            onClick={() => handleViewChange('table')}
+                            className={`p-2 rounded-lg ${view === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
                         </button>
                         <button
-                            // onClick={() => setView('grid')}
-                            // className={`p-2 rounded-lg ${view === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
+                            onClick={() => handleViewChange('grid')}
+                            className={`p-2 rounded-lg ${view === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -261,35 +760,31 @@ export default function BooksIndex() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4">
-                        <select
-                            // value={filterStatus}
-                            // onChange={(e) => setFilterStatus(e.target.value)}
-                            className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="all">All Members</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                        <select className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Categories</option>
+                            <option value="fiction">Fiction</option>
+                            <option value="non-fiction">Non-Fiction</option>
                         </select>
 
                         <div className="flex items-center gap-2">
                             <input
                                 type="date"
-                                // value={dateRange.start}
-                                // onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                value={dateRange.start}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                                 className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                             />
                             <span>to</span>
                             <input
                                 type="date"
-                                // value={dateRange.end}
-                                // onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                                value={dateRange.end}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                                 className="px-3 py-2 bg-gray-50  rounded-lg focus:ring-blue-500 focus:border-blue-500"
                             />
                         </div>
 
                         <div className="dropdown relative">
                             <button
-                                // onClick={() => setShowExportDropdown(!showExportDropdown)}
+                                onClick={() => setShowExportDropdown(!showExportDropdown)}
                                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,24 +792,15 @@ export default function BooksIndex() {
                                 </svg>
                                 <span>Export</span>
                             </button>
-                            <div
-                                // className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'
-                                //     }`}
-                            >
+                            <div className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'}`}>
                                 <button
-                                    onClick={() => {
-                                        // handleExportData('csv');
-                                        // setShowExportDropdown(false);
-                                    }}
+                                    onClick={() => handleExportData('csv')}
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                                 >
                                     Export as CSV
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        // handleExportData('excel');
-                                        // setShowExportDropdown(false);
-                                    }}
+                                    onClick={() => handleExportData('excel')}
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                                 >
                                     Export as Excel
@@ -322,20 +808,22 @@ export default function BooksIndex() {
                             </div>
                         </div>
 
-                        {/* {selectedRows.length > 0 && (
+                        {/* Bulk Delete */}
+                        {selectedRows.length > 0 && (
                             <button
                                 onClick={handleBulkDelete}
                                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                             >
                                 Delete Selected ({selectedRows.length})
                             </button>
-                        )} */}
+                        )}
 
+                        {/* Add New Book */}
                         <button
                             onClick={() => setShowAddModal(true)}
-                           className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-2"
+                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center gap-2"
                         >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                             Add New Book
@@ -344,79 +832,116 @@ export default function BooksIndex() {
                 </div>
             </div>
 
-            {/* Action Bar */}
-            <div className="bg-white py-4 mb-6">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                        <input
-                            type="text"
-                            placeholder="Search books . . ."
-                            className="px-4 py-2 bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64"
-                        />
-                        <select className="px-4 py-2 bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">All Categories</option>
-                            <option value="fiction">Fiction</option>
-                            <option value="non-fiction">Non-Fiction</option>
+            {/* Books Grid/List */}
+            {view === 'table' ? (
+                <TableView
+                    books={paginatedBooks} // Use paginatedBooks instead of filteredBooks
+                    handleDetail={handleDetail}
+                    handleEdit={handleEdit}
+                    handleDelete={handleDelete}
+                    selectedRows={selectedRows}
+                    setSelectedRows={setSelectedRows}
+                    sortConfig={sortConfig}
+                    requestSort={requestSort}
+                />
+            ) : (
+                <GridView
+                    books={paginatedBooks} // Use paginatedBooks instead of filteredBooks
+                    handleDetail={handleDetail}
+                    handleEdit={handleEdit}
+                    handleDelete={handleDelete}
+                    selectedRows={selectedRows}
+                    setSelectedRows={setSelectedRows}
+                />
+            )}
+
+            <div className="mt-6 border-t border-gray-200 pt-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-700">Show</span>
+                        <select
+                            value={pageSize}
+                            onChange={handlePageSizeChange}
+                            className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
                         </select>
+                        <span className="text-sm text-gray-700">entries</span>
                     </div>
 
+                    <div className="flex items-center gap-2">
+                        <div className="text-sm text-gray-700">
+                            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredBooks.length)} of {filteredBooks.length} entries
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => handlePageChange(1)}
+                                disabled={currentPage === 1}
+                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+
+                            {/* Page Numbers */}
+                            <div className="flex items-center gap-1">
+                                {[...Array(Math.min(5, Math.ceil(filteredBooks.length / pageSize)))].map((_, index) => {
+                                    const pageNumber = index + 1;
+                                    return (
+                                        <button
+                                            key={pageNumber}
+                                            onClick={() => handlePageChange(pageNumber)}
+                                            className={`px-3 py-1 text-sm rounded-lg ${
+                                                currentPage === pageNumber
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-white border border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {pageNumber}
+                                        </button>
+                                    );
+                                })}
+                                {Math.ceil(filteredBooks.length / pageSize) > 5 && (
+                                    <span className="px-2 text-gray-500">...</span>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
+                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={() => handlePageChange(Math.ceil(filteredBooks.length / pageSize))}
+                                disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
+                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            {/* Books Grid */}
-            {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="relative">
-                        <div className="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin"></div>
-                        <div className="w-12 h-12 border-4 border-blue-600 rounded-full animate-spin absolute top-0 left-0 border-t-transparent"></div>
-                    </div>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {books.map((book) => (
-                        <div key={book.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                            <div className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-800">{book.judul}</h3>
-                                        <p className="text-sm text-gray-600">{book.pengarang}</p>
-                                    </div>
-                                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                                        {book.stok}
-                                    </span>
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-sm"><span className="font-medium">Publisher:</span> {book.penerbit}</p>
-                                    <p className="text-sm"><span className="font-medium">Year:</span> {book.tahun_terbit}</p>
-                                    <p className="text-sm"><span className="font-medium">Rack:</span> {book.no_rak}</p>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-gray-100">
-                                    <div className="flex justify-end space-x-2">
-                                        <button
-                                            onClick={() => handleDetail(book.id)}
-                                            className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        >
-                                            View
-                                        </button>
-                                        <button
-                                            onClick={() => handleEdit(book.id)}
-                                            className="px-3 py-1 text-sm text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(book.id)}
-                                            className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
 
             {/* Add Book Modal */}
             <Modal

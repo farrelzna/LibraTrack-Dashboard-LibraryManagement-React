@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { saveAs } from 'file-saver';
+import axios from "axios";
+import Swal from "sweetalert2";
 import Modal from "../../components/Modal"; // Make sure you have this component
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
 import Papa from 'papaparse';
 
 const API_URL = "http://45.64.100.26:88/perpus-api/public/api";
@@ -18,7 +19,6 @@ export default function MemberManagement() {
   });
 
   const [error, setError] = useState({});
-
   const [successMessage, setSuccessMessage] = useState("");
 
   // Modal states
@@ -29,13 +29,14 @@ export default function MemberManagement() {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: 'ascending'
   });
 
-  // Add these new states after existing states
   const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState('table'); // 'table' or 'grid'
   const [selectedRows, setSelectedRows] = useState([]);
@@ -175,12 +176,50 @@ export default function MemberManagement() {
     });
   };
 
+  const SortIcon = ({ direction }) => {
+    if (!direction) {
+      return (
+        <svg className="w-4 h-4 ml-1 inline-block text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      );
+    }
+
+    return direction === 'ascending' ? (
+      <svg className="w-4 h-4 ml-1 inline-block text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+      </svg>
+    ) : (
+      <svg className="w-4 h-4 ml-1 inline-block text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    );
+  };
+
   const requestSort = (key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
+
+    // Menampilkan notifikasi sorting
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      }
+    });
+
+    Toast.fire({
+      icon: 'success',
+      title: `Sorted by ${key.replace('_', ' ')} ${direction}`
+    });
   };
 
   const filteredMembers = React.useMemo(() => {
@@ -253,7 +292,6 @@ export default function MemberManagement() {
     return { total, newThisMonth };
   };
 
-  // Add this with your other functions
   const handleCreateMember = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -291,6 +329,283 @@ export default function MemberManagement() {
     }
   };
 
+  const GridView = ({ members, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows }) => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {members.map((member) => (
+          <div key={member.id} className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200">
+            <div className="relative">
+              {/* Header stripe */}
+              <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-r from-blue-600 to-blue-700" />
+
+              <div className="p-6 relative">
+                <div>
+                  <h3 className="text-lg font-semibold text-white absolute top-5 right-4 leading-tight">{member.nama}</h3>
+                </div>
+                {/* Profile Icon */}
+                <div className="relative z-10 flex flex-col mb-4">
+                  <div className="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center border-4 border-white">
+                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  {/* Checkbox positioned at top-right */}
+                  <div className="absolute top-0 mt-14 right-0 mt-2 mr-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.includes(member.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedRows(prev => [...prev, member.id]);
+                        } else {
+                          setSelectedRows(prev => prev.filter(id => id !== member.id));
+                        }
+                      }}
+                      className="rounded-2xl border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="my-4 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                    ID: {member.no_ktp}
+                  </div>
+                </div>
+
+                {/* Member Details */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="text-sm">{member.alamat}</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-sm">{member.tgl_lahir}</span>
+                  </div>
+                </div>
+                {/* Action Buttons */}
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={() => handleDetail(member.id)}
+                      className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleEdit(member)}
+                      className="px-3 py-1.5 text-sm bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors inline-flex items-center"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(member.id)}
+                      className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors inline-flex items-center"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const TableView = ({ members, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows, sortConfig, requestSort }) => {
+    return (
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedRows(members.map(member => member.id));
+                    } else {
+                      setSelectedRows([]);
+                    }
+                  }}
+                  checked={selectedRows.length === members.length}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+              </th>
+              <th
+                onClick={() => requestSort('no_ktp')}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+              >
+                <div className="flex items-center">
+                  ID Number
+                  <SortIcon direction={sortConfig.key === 'no_ktp' ? sortConfig.direction : null} />
+                </div>
+              </th>
+              <th
+                onClick={() => requestSort('nama')}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+              >
+                <div className="flex items-center">
+                  Name
+                  <SortIcon direction={sortConfig.key === 'nama' ? sortConfig.direction : null} />
+                </div>
+              </th>
+              <th
+                onClick={() => requestSort('alamat')}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+              >
+                <div className="flex items-center">
+                  Address
+                  <SortIcon direction={sortConfig.key === 'alamat' ? sortConfig.direction : null} />
+                </div>
+              </th>
+              <th
+                onClick={() => requestSort('tgl_lahir')}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+              >
+                <div className="flex items-center">
+                  Birth Date
+                  <SortIcon direction={sortConfig.key === 'tgl_lahir' ? sortConfig.direction : null} />
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {members.map((member) => (
+              <tr key={member.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={selectedRows.includes(member.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedRows(prev => [...prev, member.id]);
+                      } else {
+                        setSelectedRows(prev => prev.filter(id => id !== member.id));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {member.no_ktp}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {member.nama}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {member.alamat}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {member.tgl_lahir}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleDetail(member.id)}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleEdit(member)}
+                      className="text-yellow-600 hover:text-yellow-900"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(member.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const paginateBooks = (members, currentPage, pageSize) => {
+    const indexOfLastMember = currentPage * pageSize;
+    const indexOfFirstMember = indexOfLastMember - pageSize;
+    return members.slice(indexOfFirstMember, indexOfLastMember);
+  };
+
+  const paginatedMembers = paginateBooks(filteredMembers, currentPage, pageSize);
+
+  // Fungsi untuk menampilkan toast notification
+  const showToast = (icon, title) => {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      }
+    });
+
+    Toast.fire({ icon, title });
+  };
+
+  // Update page size handler
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+    showToast('info', `Showing ${newSize} entries per page`);
+  };
+
+  // View toggle handler
+  const handleViewChange = (newView) => {
+    setView(newView);
+    showToast('info', `Switched to ${newView} view`);
+  };
+
+  // Search handler
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    if (e.target.value) {
+      showToast('info', `Searching for "${e.target.value}"`);
+    }
+  };
+
+  // Filter status handler
+  const handleFilterStatusChange = (e) => {
+    setFilterStatus(e.target.value);
+    showToast('info', `Filtered by ${e.target.value} status`);
+  };
+
+  // Date range handler
+  const handleDateRangeChange = (type, value) => {
+    setDateRange(prev => ({ ...prev, [type]: value }));
+    if (value) {
+      showToast('info', `Updated ${type} date filter`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
       {/* Header Section */}
@@ -321,9 +636,26 @@ export default function MemberManagement() {
         {/* Action Bar */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex-1 min-w-[260px] max-w-md">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search members..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setView('table')}
+                onClick={() => handleViewChange('table')}
                 className={`p-2 rounded-lg ${view === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,19 +663,17 @@ export default function MemberManagement() {
                 </svg>
               </button>
               <button
-                onClick={() => setView('grid')}
+                onClick={() => handleViewChange('grid')}
                 className={`p-2 rounded-lg ${view === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
               </button>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-4">
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onChange={(e) => handleFilterStatusChange(e)}
                 className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Members</option>
@@ -355,15 +685,15 @@ export default function MemberManagement() {
                 <input
                   type="date"
                   value={dateRange.start}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                  onChange={(e) => handleDateRangeChange('start', e.target.value)}
                   className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
                 <span>to</span>
                 <input
                   type="date"
                   value={dateRange.end}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                  className="px-3 py-2 bg-gray-50  rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => handleDateRangeChange('end', e.target.value)}
+                  className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -405,7 +735,7 @@ export default function MemberManagement() {
               {selectedRows.length > 0 && (
                 <button
                   onClick={handleBulkDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-2"
                 >
                   Delete Selected ({selectedRows.length})
                 </button>
@@ -422,7 +752,7 @@ export default function MemberManagement() {
                     tgl_lahir: "",
                   });
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -434,130 +764,112 @@ export default function MemberManagement() {
         </div>
 
         {/* Existing table code with new features */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <input
-                    type="checkbox"
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedRows(filteredMembers.map(member => member.id));
-                      } else {
-                        setSelectedRows([]);
-                      }
-                    }}
-                    checked={selectedRows.length === filteredMembers.length}
-                  />
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => requestSort('no_ktp')}
-                >
-                  ID Number {sortConfig.key === 'no_ktp' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => requestSort('nama')}
-                >
-                  Name {sortConfig.key === 'nama' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => requestSort('alamat')}
-                >
-                  Address {sortConfig.key === 'alamat' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => requestSort('tgl_lahir')}
-                >
-                  Birth Date {sortConfig.key === 'tgl_lahir' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMembers.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.includes(member.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedRows(prev => [...prev, member.id]);
-                        } else {
-                          setSelectedRows(prev => prev.filter(id => id !== member.id));
-                        }
-                      }}
-                    />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{member.no_ktp}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{member.nama}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{member.alamat}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{member.tgl_lahir}</td>
-                  <td className="px-6 py-4 whitespace-nowrap space-x-2">
-                    <button
-                      onClick={() => fetchMemberDetail(member.id)}
-                      className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
-                    >
-                      Detail
-                    </button>
-                    <button
-                      onClick={() => handleEdit(member)}
-                      className="px-3 py-1 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(member.id)}
-                      className="px-3 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {view === 'table' ? (
+          <TableView
+            members={paginatedMembers}
+            handleDetail={fetchMemberDetail}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            selectedRows={selectedRows}
+            setSelectedRows={setSelectedRows}
+            sortConfig={sortConfig}
+            requestSort={requestSort}
+          />
+        ) : (
+          <GridView
+            members={paginatedMembers}
+            handleDetail={fetchMemberDetail}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            selectedRows={selectedRows}
+            setSelectedRows={setSelectedRows}
+          />
+        )}
 
-        {/* Pagination */}
-        <div className="mt-4 flex items-center justify-between">
-          <div>
-            <select
-              value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              className="px-3 py-2 bg-gray-50 rounded-lg"
-            >
-              <option value="10">10 per page</option>
-              <option value="25">25 per page</option>
-              <option value="50">50 per page</option>
-            </select>
-          </div>
+        <div className="mt-6 border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">Show</span>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span className="text-sm text-gray-700">entries</span>
+            </div>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="px-4 py-2">
-              Page {currentPage} of {Math.ceil(filteredMembers.length / pageSize)}
-            </span>
-            <button
-              onClick={() => setCurrentPage(prev => prev + 1)}
-              disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50"
-            >
-              Next
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-700">
+                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredMembers.length)} of {filteredMembers.length} entries
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {[...Array(Math.min(5, Math.ceil(filteredMembers.length / pageSize)))].map((_, index) => {
+                    const pageNumber = index + 1;
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`px-3 py-1 text-sm rounded-lg ${currentPage === pageNumber
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                  {Math.ceil(filteredMembers.length / pageSize) > 5 && (
+                    <span className="px-2 text-gray-500">...</span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredMembers.length / pageSize)))}
+                  disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
+                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setCurrentPage(Math.ceil(filteredMembers.length / pageSize))}
+                  disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
+                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

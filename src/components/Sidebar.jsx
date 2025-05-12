@@ -19,8 +19,8 @@ export default function Sidebar() {
         { id: 'members', label: 'Manage Members', icon: '👥', path: '/members' },
         { id: 'books', label: 'Manage Books', icon: '📚', path: '/books' },
         { id: 'borrow', label: 'Borrow Books', icon: '🔄', path: '/books/lendings' },
+        { id: 'history', label: 'Lending History', icon: '📋', path: '/books/lendings/history' },
         { id: 'purchase', label: 'Purchase Books', icon: '🛒', path: '/books/restorations' },
-        { id: 'history', label: 'Purchase History', icon: '📋', path: '/history' },
     ];
 
     return (

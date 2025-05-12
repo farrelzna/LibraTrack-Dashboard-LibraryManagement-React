@@ -6,6 +6,7 @@ import MembersIndex from "../pages/members/MembersIndex";
 import BooksIndex from "../pages/books/BooksIndex";
 import Lendings from "../pages/lendings/index";
 import Restoratiosn from "../pages/restorations/index";
+import LendingsHistory from "../pages/lendings/data";
 
 import Layouts from "../template/MainLayouts";
 import GuestPage from "../pages/middleware/GuestPage";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
                     { path: "members", element: <MembersIndex /> },
                     { path: "books", element: <BooksIndex /> },
                     { path: "books/lendings", element: <Lendings /> },
+                    { path: "books/lendings/history", element: <LendingsHistory /> },
                     { path: "books/restorations", element: <Restoratiosn /> },
                     // {
                     //     path: 'admin',
