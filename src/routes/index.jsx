@@ -15,23 +15,23 @@ import PrivatePage from "../pages/middleware/PrivatePage";
 
 export const router = createBrowserRouter([
     {
+        path: "",
+        element: <GuestPage />,
+        children: [
+            { path: "", element: <Login /> },
+        ]
+    },
+    {
+        path: "/register",
+        element: <GuestPage />,
+        children: [
+            { path: "", element: <Register /> },
+        ]
+    },
+    {
         path: "/",
         element: <Layouts />,
         children: [
-            {
-                path: "",
-                element: <GuestPage />,
-                children: [
-                    { path: "", element: <Login /> },
-                ]
-            },
-            {
-                path: "/register",
-                element: <GuestPage />,
-                children: [
-                    { path: "", element: <Register /> },
-                ]
-            },
             {
                 path: "",
                 element: <PrivatePage />,

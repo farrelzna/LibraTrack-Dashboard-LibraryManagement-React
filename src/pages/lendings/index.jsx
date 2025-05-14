@@ -26,11 +26,15 @@ const Lendings = () => {
         key: null,
         direction: 'asc'
     });
+    const [books, setBooks] = useState([]);
+    const [members, setMembers] = useState([]); // Add state for members
 
     const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
 
     useEffect(() => {
         fetchPeminjaman();
+        fetchBooks();
+        fetchMembers(); // Add fetchMembers to useEffect
     }, []);
 
     const fetchPeminjaman = async () => {
@@ -50,6 +54,81 @@ const Lendings = () => {
                 title: 'Error',
                 text: 'Failed to fetch lending data',
                 confirmButtonColor: '#3B82F6'
+            });
+        }
+    };
+    const fetchBooks = async () => {
+        const getToken = localStorage.getItem('token');
+        try {
+            const response = await axios.get(`${API_URL}/buku`, {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${getToken}`
+                }
+            });
+            console.log('Full API Response:', response); // Debug full response
+            console.log('Response data:', response.data); // Debug data structure
+
+            // Set books data directly from response.data
+            setBooks(response.data);
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Books data loaded successfully'
+            });
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            if (error.response) {
+                console.log('Error response:', error.response);
+                console.log('Error response data:', error.response.data);
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load books data'
+            });
+        }
+    };
+
+    const fetchMembers = async () => {
+        const getToken = localStorage.getItem('token');
+        try {
+            const response = await axios.get(`${API_URL}/member`, {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${getToken}`
+                }
+            });
+            console.log('Members response:', response.data); // Debug log
+            setMembers(response.data);
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Members data loaded successfully'
+            });
+        } catch (error) {
+            console.error('Error fetching members:', error);
+            if (error.response) {
+                console.log('Error response:', error.response);
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load members data'
             });
         }
     };
@@ -82,7 +161,11 @@ const Lendings = () => {
     }, [searchQuery, dataPeminjaman]);
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
     // Function to handle book lending
@@ -345,26 +428,35 @@ const Lendings = () => {
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Lending Form</h2>
                         <form className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Book ID</label>
-                                <input
-                                    type="text"
+                                <label className="block text-sm font-medium text-gray-700">Book</label>
+                                <select
                                     name="id_buku"
                                     value={form.id_buku}
                                     onChange={handleChange}
-                                    placeholder="Enter Book ID"
                                     className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Member ID</label>
-                                <input
-                                    type="text"
+                                >
+                                    <option value="">Select a Book</option>
+                                    {books.map((book) => (
+                                        <option key={book.id} value={book.id}>
+                                            {book.judul} - (Stock: {book.stok})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Member</label>
+                                <select
                                     name="id_member"
                                     value={form.id_member}
                                     onChange={handleChange}
-                                    placeholder="Enter Member ID"
                                     className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                />
+                                >
+                                    <option value="">Select a Member</option>
+                                    {members.map((member) => (
+                                        <option key={member.id} value={member.id}>
+                                            {member.nama}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Borrow Date</label>
@@ -425,11 +517,9 @@ const Lendings = () => {
                 </div>
             </div>
 
-            {/* Table Section */}            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-800">Lending List</h2>
-
-                    {/* Search Form */}
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Search by Book ID</label>
@@ -464,7 +554,7 @@ const Lendings = () => {
                                     onClick={() => handleSort('id_buku')}
                                 >
                                     <div className="flex items-center">
-                                        Book ID
+                                        Book
                                         <SortIcon column="id_buku" />
                                     </div>
                                 </th>
@@ -473,7 +563,7 @@ const Lendings = () => {
                                     onClick={() => handleSort('id_member')}
                                 >
                                     <div className="flex items-center">
-                                        Member ID
+                                        Member
                                         <SortIcon column="id_member" />
                                     </div>
                                 </th>
@@ -514,7 +604,7 @@ const Lendings = () => {
                                     let statusText = 'Active';
 
                                     if (isReturned) {
-                                        statusClass = 'text-blue-600';
+                                        statusClass = 'text-gray-600';
                                         statusText = 'Returned';
                                     } else if (isLate) {
                                         statusClass = 'text-red-600';
@@ -522,25 +612,30 @@ const Lendings = () => {
                                     }
 
                                     return (
-                                        <tr key={item.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.id_buku}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.id_member}</td>
+                                        <tr key={item.id}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {books.find(book => book.id === item.id_buku)?.judul || 'Undefined'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {members.find(member => member.id === item.id_member)?.nama || 'Undefined'}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{moment(item.tgl_pinjam).format('DD/MM/YYYY')}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{moment(item.tgl_pengembalian).format('DD/MM/YYYY')}</td>
                                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${statusClass}`}>{statusText}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">                                <button
-                                                onClick={() => handlePengembalian(item)}
-                                                disabled={item.status_pengembalian}
-                                                className={`inline-flex items-center px-3 py-1.5 text-sm ${item.status_pengembalian
-                                                    ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                                                    : 'bg-green-50 text-green-600 hover:bg-green-100'
-                                                    } rounded-lg transition-colors`}
-                                            >
-                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3" />
-                                                </svg>
-                                                Return
-                                            </button>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                <button
+                                                    onClick={() => handlePengembalian(item)}
+                                                    disabled={item.status_pengembalian}
+                                                    className={`inline-flex items-center px-3 py-1.5 text-sm ${item.status_pengembalian
+                                                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                                                        : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                                        } rounded-lg transition-colors`}
+                                                >
+                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3" />
+                                                    </svg>
+                                                    Return
+                                                </button>
                                                 <button
                                                     onClick={() => handleShowDetail(item.id)}
                                                     className="inline-flex items-center px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"

@@ -11,13 +11,55 @@ const Restorations = () => {
         jenis_denda: '',
         deskripsi: ''
     });
+    const [books, setBooks] = useState([]);
+    const [members, setMembers] = useState([]);
 
     const [dendaData, setDendaData] = useState([]);
-    const [detailDenda, setDetailDenda] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [detailDenda, setDetailDenda] = useState(null);    const [showModal, setShowModal] = useState(false);
 
-    const apiUrl = 'http://45.64.100.26:88/perpus-api/public/api/denda';
+    const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
+    const apiUrl = `${API_URL}/denda`;
     const getToken = localStorage.getItem('token');
+
+    const fetchBooks = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/buku`, {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${getToken}`
+                }
+            });
+            setBooks(response.data?.data || []);
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to fetch books',
+                confirmButtonColor: '#3B82F6'
+            });
+        }
+    };
+
+    const fetchMembers = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/member`, {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${getToken}`
+                }
+            });
+            setMembers(response.data?.data || []);
+        } catch (error) {
+            console.error('Error fetching members:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to fetch members',
+                confirmButtonColor: '#3B82F6'
+            });
+        }
+    };
 
     const fetchDenda = useCallback(async () => {
         try {
@@ -139,10 +181,10 @@ const Restorations = () => {
                 confirmButtonColor: '#3B82F6'
             });
         }
-    };
-
-    useEffect(() => {
+    };    useEffect(() => {
         fetchDenda();
+        fetchBooks();
+        fetchMembers();
     }, [fetchDenda]); // Remove fetchDenda from dependencies to prevent infinite loop
 
     const handleCloseModal = () => {

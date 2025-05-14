@@ -2,71 +2,120 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 import Swal from 'sweetalert2';
+import Modal from '../../components/Modal';
 
 const MemberHistory = () => {
-    const [memberData, setMemberData] = useState({});
+    const [lendingData, setLendingData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedLending, setSelectedLending] = useState(null);
 
     useEffect(() => {
-        fetchMemberHistory();
-    }, []);
-
-    const fetchMemberHistory = async () => {
-        const getToken = localStorage.getItem('token');
-        try {
-            // Fetch lending data
-            const lendingRes = await axios.get('http://45.64.100.26:88/perpus-api/public/api/peminjaman', {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
+        const loadData = async () => {
+            setLoading(true);
+            try {
+                const getToken = localStorage.getItem('token');
+                if (!getToken) {
+                    throw new Error('No authentication token found');
                 }
-            });
 
-            // Fetch fine data
-            const fineRes = await axios.get('http://45.64.100.26:88/perpus-api/public/api/denda', {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
+                const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
 
-            // Group data by member ID
-            const groupedData = {};
-            
-            // Process lending data
-            lendingRes.data.data.forEach(lending => {
-                if (!groupedData[lending.id_member]) {
-                    groupedData[lending.id_member] = {
-                        lendings: [],
-                        fines: [],
-                        totalBooks: 0,
-                        totalFines: 0
+                // Fetch all required data
+                const [lendingRes, membersRes, booksRes, finesRes] = await Promise.all([
+                    axios.get(`${API_URL}/peminjaman`, {
+                        headers: {
+                            Accept: 'application/json',
+                            Authorization: `Bearer ${getToken}`
+                        }
+                    }),
+                    axios.get(`${API_URL}/member`, {
+                        headers: {
+                            Accept: 'application/json',
+                            Authorization: `Bearer ${getToken}`
+                        }
+                    }),
+                    axios.get(`${API_URL}/buku`, {
+                        headers: {
+                            Accept: 'application/json',
+                            Authorization: `Bearer ${getToken}`
+                        }
+                    }),
+                    axios.get(`${API_URL}/denda`, {
+                        headers: {
+                            Accept: 'application/json',
+                            Authorization: `Bearer ${getToken}`
+                        }
+                    })
+                ]);
+
+                // Get data from responses
+                const lendings = lendingRes.data?.data || [];
+                const members = membersRes.data?.data || [];
+                const books = booksRes.data?.data || [];
+                const fines = finesRes.data?.data || [];
+
+                // Process and combine the data                console.log('Members data:', members);
+                console.log('Lendings data:', lendings);
+
+                const processedLendings = lendings.map(lending => {
+                    console.log('Processing lending:', lending);
+                    const member = members.find(m => parseInt(m.id) === parseInt(lending.id_member));
+                    console.log('Found member:', member, 'for id_member:', lending.id_member, 'member.id type:', typeof member?.id, 'lending.id_member type:', typeof lending.id_member);
+
+                    const book = books.find(b => parseInt(b.id) === parseInt(lending.id_buku));
+                    console.log('Found book:', book, 'for id_buku:', lending.id_buku);
+
+                    const relatedFines = fines.filter(f =>
+                        f.id_member === lending.id_member &&
+                        f.id_buku === lending.id_buku
+                    );
+
+                    return {
+                        ...lending,
+                        memberName: member?.name || 'Unknown Member',
+                        memberPhone: member?.no_telp || 'No Phone',
+                        bookTitle: book?.judul || `Book #${lending.id_buku}`,
+                        fines: relatedFines,
+                        totalFines: relatedFines.reduce((sum, fine) =>
+                            sum + parseFloat(fine.jumlah_denda || 0), 0
+                        )
                     };
-                }
-                groupedData[lending.id_member].lendings.push(lending);
-                groupedData[lending.id_member].totalBooks += 1;
-            });
+                });
 
-            // Process fine data
-            fineRes.data.data.forEach(fine => {
-                if (groupedData[fine.id_member]) {
-                    groupedData[fine.id_member].fines.push(fine);
-                    groupedData[fine.id_member].totalFines += parseFloat(fine.jumlah_denda);
-                }
-            });
+                console.log('Processed lendings:', processedLendings);
+                setLendingData(processedLendings);
+                setLoading(false);
 
-            setMemberData(groupedData);
-            setLoading(false);
-        } catch (error) {
-            console.error('Failed to fetch member history:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to fetch member history',
-                confirmButtonColor: '#3B82F6'
-            });
-            setLoading(false);
-        }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load data: ' + (error.response?.data?.message || error.message),
+                    confirmButtonColor: '#3B82F6'
+                });
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+    const handleShowDetails = (lending) => {
+        // Get all lendings for this member
+        const memberBorrowHistory = lendingData.filter(l => l.id_member === lending.id_member);
+
+        // Add borrowing history to the selected lending
+        setSelectedLending({
+            ...lending,
+            borrowHistory: memberBorrowHistory
+        });
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSelectedLending(null);
     };
 
     if (loading) {
@@ -80,77 +129,290 @@ const MemberHistory = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
-            {/* Header Section */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">Member History</h1>
-                <p className="mt-2 text-gray-600">View lending and fine history for each member</p>
-            </div>
-
-            {/* Grid of Member Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(memberData).map(([memberId, data]) => (
-                    <div key={memberId} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-                        <div className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h2 className="text-xl font-semibold text-gray-800">Member ID: {memberId}</h2>
-                                    <p className="text-sm text-gray-500 mt-1">Total Books Borrowed: {data.totalBooks}</p>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="max-w-7xl mx-auto">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-12">
+                        <div className="relative z-10">
+                            <h1 className="text-4xl font-bold text-white mb-2">Lending History</h1>
+                            <p className="text-blue-100 text-lg">Comprehensive view of all lending activities</p>
+                            <div className="mt-4 flex items-center space-x-4">
+                                <div className="bg-blue-900/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                                    <span className="text-blue-100 text-sm">Total Records</span>
+                                    <h3 className="text-2xl font-bold text-white">{lendingData.length}</h3>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-medium text-gray-500">Total Fines</p>
-                                    <p className={`text-lg font-semibold ${data.totalFines > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                        Rp {data.totalFines.toLocaleString()}
-                                    </p>
+                                <div className="bg-blue-900/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                                    <span className="text-blue-100 text-sm">Active Lendings</span>
+                                    <h3 className="text-2xl font-bold text-white">
+                                        {lendingData.filter(l => !l.status_pengembalian).length}
+                                    </h3>
                                 </div>
-                            </div>
-
-                            {/* Recent Lendings */}
-                            <div className="mb-4">
-                                <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Lendings</h3>
-                                <div className="space-y-2">
-                                    {data.lendings.slice(0, 3).map((lending, index) => (
-                                        <div key={index} className="bg-gray-50 rounded-lg p-3 text-sm">
-                                            <div className="flex justify-between mb-1">
-                                                <span className="text-gray-600">Book ID: {lending.id_buku}</span>
-                                                <span className={`font-medium ${moment().isAfter(moment(lending.tgl_pengembalian)) ? 'text-red-600' : 'text-green-600'}`}>
-                                                    {moment().isAfter(moment(lending.tgl_pengembalian)) ? 'Late' : 'Active'}
-                                                </span>
-                                            </div>
-                                            <div className="text-gray-500">
-                                                {moment(lending.tgl_pinjam).format('DD MMM YYYY')} - {moment(lending.tgl_pengembalian).format('DD MMM YYYY')}
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="bg-blue-900/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                                    <span className="text-blue-100 text-sm">Late Returns</span>
+                                    <h3 className="text-2xl font-bold text-white">
+                                        {lendingData.filter(l => !l.status_pengembalian && moment().isAfter(moment(l.tgl_pengembalian))).length}
+                                    </h3>
                                 </div>
                             </div>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/50 to-blue-800/50"></div>
+                        <div className="absolute right-0 bottom-0 transform translate-y-1/3">
+                            <svg className="w-64 h-64 text-blue-800/20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402m5.726-20.583c-2.203 0-4.446 1.042-5.726 3.238-1.285-2.206-3.522-3.248-5.719-3.248-3.183 0-6.281 2.187-6.281 6.191 0 4.661 5.571 9.429 12 15.809 6.43-6.38 12-11.148 12-15.809 0-4.011-3.095-6.181-6.274-6.181"></path>
+                            </svg>
+                        </div>
+                    </div>
 
-                            {/* Recent Fines */}
-                            {data.fines.length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Fines</h3>
-                                    <div className="space-y-2">
-                                        {data.fines.slice(0, 2).map((fine, index) => (
-                                            <div key={index} className="bg-red-50 rounded-lg p-3 text-sm">
-                                                <div className="flex justify-between mb-1">
-                                                    <span className="text-gray-600">Book ID: {fine.id_buku}</span>
-                                                    <span className="font-medium text-red-600">
-                                                        Rp {parseFloat(fine.jumlah_denda).toLocaleString()}
+                    {/* Content Section */}
+                    <div className="p-8">
+                        {lendingData.length === 0 ? (
+                            <div className="text-center py-12">
+                                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                                <p className="text-xl text-gray-500 font-medium">No lending records available</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+                                {lendingData.map((lending) => {
+                                    // Calculate statistics for this member
+                                    const memberLendings = lendingData.filter(l => l.id_member === lending.id_member);
+                                    const memberStats = {
+                                        totalFines: memberLendings.filter(l => l.fines.length > 0).length,
+                                        returned: memberLendings.filter(l => l.status_pengembalian).length,
+                                        active: memberLendings.filter(l => !l.status_pengembalian).length
+                                    };
+
+                                    return (
+                                        <div key={lending.id}
+                                            className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                                            {/* Card Header - Keep existing header */}
+                                            <div className={`relative px-6 py-4 ${lending.status_pengembalian
+                                                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
+                                                : moment().isAfter(moment(lending.tgl_pengembalian))
+                                                    ? 'bg-gradient-to-r from-red-500 to-red-600'
+                                                    : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                                                }`}>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div>
+                                                        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                                                            #{lending.id}
+                                                            <span className="text-sm font-normal opacity-80">
+                                                                | ID Buku: {lending.id_buku} - {lending.bookTitle}
+                                                            </span>
+                                                        </h2>
+                                                        <p className="text-white/90 mt-1 font-medium">{lending.memberName}</p>
+                                                    </div>
+                                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${lending.status_pengembalian
+                                                        ? 'bg-emerald-100 text-emerald-800'
+                                                        : moment().isAfter(moment(lending.tgl_pengembalian))
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : 'bg-blue-100 text-blue-800'
+                                                        }`}>
+                                                        {lending.status_pengembalian
+                                                            ? 'Returned'
+                                                            : moment().isAfter(moment(lending.tgl_pengembalian))
+                                                                ? 'Late'
+                                                                : 'Active'
+                                                        }
                                                     </span>
                                                 </div>
-                                                <div className="text-gray-500">{fine.jenis_denda}</div>
-                                                {fine.deskripsi && (
-                                                    <div className="text-gray-500 text-xs mt-1">{fine.deskripsi}</div>
+                                                <div className="absolute bottom-0 right-0 transform translate-y-1/2">
+                                                    <svg className="w-24 h-24 text-white/10" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            {/* Card Content - Updated to show member statistics */}
+                                            <div className="p-6">
+                                                <div className="mb-6">
+                                                    <h3 className="text-lg font-semibold text-gray-900">{lending.bookTitle}</h3>
+
+                                                    {/* Member Statistics */}
+                                                    <div className="mt-6 grid grid-cols-3 gap-4">
+                                                        <div className="text-center p-3 bg-red-50 rounded-lg">
+                                                            <p className="text-sm text-red-600 font-medium text-xs">Fines Applied</p>
+                                                            <p className="text-2xl font-bold text-red-700">{memberStats.totalFines}</p>
+                                                        </div>
+                                                        <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                                                            <p className="text-sm text-emerald-600 font-medium text-xs">Returned</p>
+                                                            <p className="text-2xl font-bold text-emerald-700">{memberStats.returned}</p>
+                                                        </div>
+                                                        <div className="text-center p-3 bg-blue-50 rounded-lg">
+                                                            <p className="text-sm text-blue-600 font-medium text-xs">Active</p>
+                                                            <p className="text-2xl font-bold text-blue-700">{memberStats.active}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-6 pt-4 border-t border-gray-100">
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <div className="flex items-center text-gray-500">
+                                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                            </svg>
+                                                            Member ID: {lending.id_member}
+                                                        </div>
+                                                        <span className="text-blue-600 hover:text-blue-800 cursor-pointer" onClick={() => handleShowDetails(lending)}>
+                                                            View Details →
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <Modal
+                isOpen={showModal}
+                onClose={handleCloseModal}
+                title="Lending Details"
+            >
+                {selectedLending && (
+                    <div className="space-y-6">
+                        {/* Status Badge */}
+                        <div className="flex">
+                            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${selectedLending.status_pengembalian
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : moment().isAfter(moment(selectedLending.tgl_pengembalian))
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                {selectedLending.status_pengembalian
+                                    ? 'Returned'
+                                    : moment().isAfter(moment(selectedLending.tgl_pengembalian))
+                                        ? 'Late'
+                                        : 'Active'
+                                }
+                            </span>
+                        </div>
+
+                        {/* Main Info Grid */}
+                        <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
+                            <div>
+                                <p className="text-sm text-gray-500">Book Title</p>
+                                <p className="font-medium text-gray-900">{selectedLending.bookTitle}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Member Name</p>
+                                <p className="font-medium text-gray-900">{selectedLending.memberName}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Member Phone</p>
+                                <p className="font-medium text-gray-900">{selectedLending.memberPhone}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Member ID</p>
+                                <p className="font-medium text-gray-900">#{selectedLending.id_member}</p>
+                            </div>
+                        </div>
+
+                        {/* Dates Section */}
+                        <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
+                            <div>
+                                <p className="text-sm text-gray-500">Lending Date</p>
+                                <p className="font-medium text-gray-900">
+                                    {moment(selectedLending.tgl_pinjam).format('DD MMMM YYYY')}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Return Date</p>
+                                <p className="font-medium text-gray-900">
+                                    {moment(selectedLending.tgl_pengembalian).format('DD MMMM YYYY')}
+                                </p>
+                            </div>
+                            {!selectedLending.status_pengembalian && moment().isAfter(moment(selectedLending.tgl_pengembalian)) && (
+                                <div className="col-span-2">
+                                    <p className="text-sm text-red-600">
+                                        Overdue by {moment().diff(moment(selectedLending.tgl_pengembalian), 'days')} days
+                                    </p>
+                                </div>
+                            )}
+                        </div>                        {/* Member's Borrowing History */}
+                        <div className="space-y-3">
+                            <h3 className="font-semibold text-gray-900">Member's Borrowing History</h3>
+                            <div className="border border-gray-100 rounded-lg">
+                                <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                    <div className="divide-y divide-gray-100">
+                                        {selectedLending.borrowHistory.map((borrow, index) => (
+                                            <div key={index} className="p-3 hover:bg-gray-50">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">{borrow.bookTitle}</p>
+                                                        <p className="text-sm text-gray-500">
+                                                            {moment(borrow.tgl_pinjam).format('DD MMM YYYY')} - {moment(borrow.tgl_pengembalian).format('DD MMM YYYY')}
+                                                        </p>
+                                                    </div>
+                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${borrow.status_pengembalian
+                                                        ? 'bg-emerald-100 text-emerald-800'
+                                                        : moment().isAfter(moment(borrow.tgl_pengembalian))
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : 'bg-blue-100 text-blue-800'
+                                                        }`}>
+                                                        {borrow.status_pengembalian
+                                                            ? 'Returned'
+                                                            : moment().isAfter(moment(borrow.tgl_pengembalian))
+                                                                ? 'Late'
+                                                                : 'Active'
+                                                        }
+                                                    </span>
+                                                </div>
+                                                {borrow.fines.length > 0 && (
+                                                    <p className="mt-1 text-sm text-red-600">
+                                                        Fines: ${borrow.totalFines.toFixed(2)}
+                                                    </p>
                                                 )}
                                             </div>
                                         ))}
                                     </div>
                                 </div>
-                            )}
+                                <div className="flex justify-between items-center p-3 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+                                    <span className="font-medium text-gray-700">Total Books Borrowed</span>
+                                    <span className="font-semibold text-blue-600">
+                                        {selectedLending.borrowHistory.length}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Fines History */}
+                        {selectedLending.fines.length > 0 && (
+                            <div className="space-y-3">
+                                <h3 className="font-semibold text-gray-900">Fines History</h3>
+                                <div className="border border-gray-50 bg-gray-50 rounded-lg">
+                                    <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                        <div className="space-y-2 p-3">
+                                            {selectedLending.fines.map((fine, index) => (
+                                                <div key={index} className="bg-red-50 p-3 rounded-lg">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-red-700 font-medium">
+                                                            ${parseFloat(fine.jumlah_denda).toFixed(2)}
+                                                        </span>
+                                                        <span className="text-sm text-red-600">
+                                                            {moment(fine.created_at).format('DD MMM YYYY')}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+                                        <span className="font-semibold">Total Fines</span>
+                                        <span className="text-red-600 font-semibold">
+                                            ${selectedLending.totalFines.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                ))}
-            </div>
+                )}
+            </Modal>
         </div>
     );
 };
