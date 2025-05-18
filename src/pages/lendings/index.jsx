@@ -27,9 +27,10 @@ const Lendings = () => {
         direction: 'asc'
     });
     const [books, setBooks] = useState([]);
-    const [members, setMembers] = useState([]); // Add state for members
-
+    const [members, setMembers] = useState([]);
+    const [lateFeesData, setLateFeesData] = useState([]); // State untuk data denda
     const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
+    const getToken = localStorage.getItem('token');
 
     useEffect(() => {
         fetchPeminjaman();
@@ -208,125 +209,123 @@ const Lendings = () => {
             });
         }
     };
-
     const handlePengembalian = async (item) => {
-        const getToken = localStorage.getItem('token');
-        const today = moment();
-        const returnDate = moment(item.tgl_pengembalian);
-        const daysLate = today.diff(returnDate, 'days');
-
-        // Process normal return if not late
-        if (daysLate <= 0) {
-            try {
-                const formData = new FormData();
-                formData.append('_method', 'PUT');
-
-                await axios.post(`${API_URL}/peminjaman/pengembalian/${item.id}`, formData, {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${getToken}`
-                    }
-                });
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Book return successfully processed',
-                    confirmButtonColor: '#3B82F6'
-                });
-                fetchPeminjaman();
-            } catch (error) {
-                console.error('Failed to process return:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to process return',
-                    confirmButtonColor: '#3B82F6'
-                });
-            }
-            return;
-        }
-
-        // Handle late return
-        const fineAmount = daysLate * 10000; // Rp 10.000 per day
-
-        // Show fine payment modal
-        const result = await Swal.fire({
-            icon: 'warning',
-            title: 'Late Return',
-            html: `
-                <div class="text-left">
-                    <p class="mb-2">This book is ${daysLate} days late.</p>
-                    <p class="mb-2">Fine details:</p>
-                    <ul class="list-disc pl-5 mb-3">
-                        <li>Days late: ${daysLate} days</li>
-                        <li>Fine per day: Rp 10.000</li>
-                        <li>Total fine: Rp ${fineAmount.toLocaleString()}</li>
-                    </ul>
-                    <p>Please process the fine payment to continue.</p>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Process Payment',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#3B82F6',
-            cancelButtonColor: '#6B7280'
-        });
-
-        if (!result.isConfirmed) {
-            return;
-        }
-
         try {
-            // Step 1: Create fine record
-            await axios.post(`${API_URL}/denda`, {
-                id_member: item.id_member,
-                id_buku: item.id_buku,
-                jumlah_denda: fineAmount,
-                jenis_denda: 'terlambat',
-                deskripsi: `Late return fine for ${daysLate} days (${moment(item.tgl_pengembalian).format('DD MMM YYYY')} - ${moment().format('DD MMM YYYY')})`
-            }, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
+            const today = new Date();
+            const targetDate = new Date(item.tgl_pengembalian);
+            const selisihHari = Math.ceil(
+                (today - targetDate) / (1000 * 60 * 60 * 24)
+            );
 
-            // Step 2: Process return
+            // Membuat FormData untuk pengembalian
             const formData = new FormData();
-            formData.append('_method', 'PUT');
+            formData.append("_method", "PUT");
 
-            await axios.post(`${API_URL}/peminjaman/pengembalian/${item.id}`, formData, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
+            // Case 1: Pengembalian tepat waktu
+            const handleNormalReturn = async () => {
+                try {
+                    const response = await axios.post(
+                        `${API_URL}/peminjaman/pengembalian/${item.id}`,
+                        formData,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${getToken}`
+                            }
+                        }
+                    );
+
+                    if (response.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sukses',
+                            text: 'Buku berhasil dikembalikan tepat waktu',
+                            confirmButtonColor: '#3B82F6'
+                        });
+                        fetchPeminjaman();
+                    }
+                } catch (error) {
+                    throw new Error('Gagal memproses pengembalian buku');
                 }
-            });
+            };
 
-            // Step 3: Show success message
-            await Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Book return and fine payment successfully processed',
-                confirmButtonColor: '#3B82F6'
-            });
+            // Case 2: Pengembalian terlambat dengan denda
+            const handleLateReturn = async () => {
+                try {
+                    // 1. Proses pengembalian buku terlebih dahulu
+                    await axios.post(
+                        `${API_URL}/peminjaman/pengembalian/${item.id}`,
+                        formData,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${getToken}`
+                            }
+                        }
+                    );
 
-            // Step 4: Refresh data
-            fetchPeminjaman();
+                    // 2. Buat record denda
+                    const jumlahDenda = selisihHari * 1000;
+                    const dendaData = {
+                        id_member: item.id_member,
+                        id_buku: item.id_buku,
+                        jumlah_denda: String(jumlahDenda),
+                        jenis_denda: "terlambat",
+                        deskripsi: `User ${item.id_member} telah telat mengembalikan buku ${item.id_buku} selama ${selisihHari} hari`
+                    };
+
+                    await axios.post(`${API_URL}/denda`, dendaData, {
+                        headers: {
+                            Authorization: `Bearer ${getToken}`
+                        }
+                    });
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Buku Dikembalikan Terlambat',
+                        html: `Kamu telat ${selisihHari} hari.<br>Denda: ${formatRupiah(jumlahDenda)}`,
+                        confirmButtonColor: '#3B82F6'
+                    });
+
+                    fetchPeminjaman();
+                } catch (error) {
+                    throw new Error('Gagal memproses pengembalian dan denda');
+                }
+            };
+
+            // Eksekusi berdasarkan kondisi keterlambatan
+            if (selisihHari > 0) {
+                await handleLateReturn();
+            } else {
+                await handleNormalReturn();
+            }
+
         } catch (error) {
-            console.error('Failed to process return and fine:', error);
+            console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to process return and fine payment',
+                text: error.message || 'Gagal memproses pengembalian',
                 confirmButtonColor: '#3B82F6'
             });
         }
     };
 
-    const handleShowDetail = (id) => {
-        setSelectedId(id);
-        setShowModal(true);
+    const formatRupiah = (amount) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
+    const handleShowDetail = async (id) => {
+        const detail = dataPeminjaman.find((item) => item.id === id);
+        if (detail) {
+            const lateFees = await fetchLateFees(detail.id_member);
+            setSelectedId(id);
+            setLateFeesData(lateFees);
+            setShowModal(true);
+        }
     };
 
     const handleCloseModal = () => {
@@ -412,6 +411,30 @@ const Lendings = () => {
     }, [filteredData, pageSize]);
 
     const detailPeminjaman = dataPeminjaman.find((item) => item.id === selectedId);
+
+    // Fungsi untuk mengambil data denda keterlambatan
+    const fetchLateFees = async (member_id) => {
+        try {
+            const response = await axios.get(`${API_URL}/denda`, {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${getToken}`
+                }
+            });
+
+            // Filter denda keterlambatan untuk member tertentu
+            const memberLateFees = response.data?.data?.filter(denda =>
+                denda.jenis_denda === 'terlambat' &&
+                denda.id_member === member_id
+            );
+
+            return memberLateFees || [];
+        } catch (error) {
+            console.error('Error fetching late fees:', error);
+            return [];
+        }
+        p
+    };    // Modal content
 
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
@@ -759,54 +782,39 @@ const Lendings = () => {
                     </div>
                 </div>
             </div>
-
             {/* Detail Modal */}
-            <Modal
-                isOpen={showModal}
-                onClose={handleCloseModal}
-                title="Lending Details"
-            >
-                {detailPeminjaman ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium text-gray-900">Lending Information</h3>
-                            <div>
-                                <p className="text-sm text-gray-500">Lending ID</p>
-                                <p className="font-medium">{detailPeminjaman.id}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Member ID</p>
-                                <p className="font-medium">{detailPeminjaman.id_member}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Book ID</p>
-                                <p className="font-medium">{detailPeminjaman.id_buku}</p>
-                            </div>
+            {showModal && detailPeminjaman && (
+                <Modal
+                    isOpen={showModal}
+                    onClose={handleCloseModal}
+                    title="Detail Peminjaman"
+                >
+                    <div className="p-6">
+                        <div className="mb-4">
+                            <p><strong>ID Member:</strong> {detailPeminjaman.id_member}</p>
+                            <p><strong>ID Buku:</strong> {detailPeminjaman.id_buku}</p>
+                            <p><strong>Tanggal Pinjam:</strong> {detailPeminjaman.tgl_pinjam}</p>
+                            <p><strong>Tanggal Pengembalian:</strong> {detailPeminjaman.tgl_pengembalian}</p>
+                            <p><strong>Status:</strong> {detailPeminjaman.status_pengembalian ? 'Dikembalikan' : 'Belum dikembalikan'}</p>
                         </div>
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium text-gray-900">Schedule</h3>
-                            <div>
-                                <p className="text-sm text-gray-500">Borrow Date</p>
-                                <p className="font-medium">{moment(detailPeminjaman.tgl_pinjam).format('DD MMMM YYYY')}</p>
+
+                        {/* Tampilkan denda keterlambatan jika ada */}
+                        {lateFeesData.length > 0 && (
+                            <div className="mt-4">
+                                <h4 className="text-md font-semibold mb-2">Riwayat Denda Keterlambatan</h4>
+                                <div className="space-y-2">
+                                    {lateFeesData.map((denda, index) => (
+                                        <div key={index} className="p-2 bg-gray-50 rounded">
+                                            <p><strong>Jumlah Denda:</strong> {formatRupiah(denda.jumlah_denda)}</p>
+                                            <p><strong>Deskripsi:</strong> {denda.deskripsi}</p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Return Date</p>
-                                <p className="font-medium">{moment(detailPeminjaman.tgl_pengembalian).format('DD MMMM YYYY')}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Status</p>
-                                <p className={`font-medium ${moment().isAfter(moment(detailPeminjaman.tgl_pengembalian)) ? 'text-red-600' : 'text-green-600'}`}>
-                                    {moment().isAfter(moment(detailPeminjaman.tgl_pengembalian)) ? 'Late' : 'Active'}
-                                </p>
-                            </div>
-                        </div>
+                        )}
                     </div>
-                ) : (
-                    <div className="text-center py-4">
-                        <p className="text-gray-500">Data not found</p>
-                    </div>
-                )}
-            </Modal>
+                </Modal>
+            )}
         </div>
     );
 };

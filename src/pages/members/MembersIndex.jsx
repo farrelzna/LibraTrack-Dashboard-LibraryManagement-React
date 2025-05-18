@@ -735,7 +735,7 @@ export default function MemberManagement() {
               {selectedRows.length > 0 && (
                 <button
                   onClick={handleBulkDelete}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-2"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
                 >
                   Delete Selected ({selectedRows.length})
                 </button>
@@ -894,6 +894,14 @@ export default function MemberManagement() {
                   <p className="text-sm text-gray-500">Birth Date</p>
                   <p className="font-medium">{selectedMember.tgl_lahir}</p>
                 </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setIsDetailModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                >
+                  Tutup
+                </button>
               </div>
             </div>
           ) : (

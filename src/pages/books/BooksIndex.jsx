@@ -6,8 +6,7 @@ import Swal from "sweetalert2";
 import Modal from '../../components/Modal';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-
-const API_URL = "http://45.64.100.26:88/perpus-api/public/api";
+import API_URL from '../../constant';
 
 export default function BooksIndex() {
     const [books, setBooks] = useState([]);
@@ -622,26 +621,6 @@ export default function BooksIndex() {
         });
     };
 
-    const handleSort = (key) => {
-        let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-        
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        });
-        Toast.fire({
-            icon: 'success',
-            title: `Sorted by ${key} ${direction}ending`
-        });
-    };
-
     // Pagination handling with notifications
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -1194,9 +1173,9 @@ export default function BooksIndex() {
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg"
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
                             >
-                                Update
+                                Update Books
                             </button>
                         </div>
                     </form>

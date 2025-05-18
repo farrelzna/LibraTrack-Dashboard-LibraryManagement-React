@@ -9,6 +9,26 @@ const MemberHistory = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [selectedLending, setSelectedLending] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(9);
+    const [filteredData, setFilteredData] = useState([]);
+
+    // Calculate pagination values
+    const indexOfLastItem = currentPage * pageSize;
+    const indexOfFirstItem = indexOfLastItem - pageSize;
+    const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+
+    // Set filtered data when lending data changes
+    useEffect(() => {
+        setFilteredData(lendingData);
+    }, [lendingData]);
+
+    // Function to handle page changes
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     useEffect(() => {
         const loadData = async () => {
@@ -130,7 +150,7 @@ const MemberHistory = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            <div className="max-w-7xl mx-auto">
+            <div className="mx-auto">
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-12">
                         <div className="relative z-10">
@@ -173,8 +193,8 @@ const MemberHistory = () => {
                                 <p className="text-xl text-gray-500 font-medium">No lending records available</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-                                {lendingData.map((lending) => {
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                                {currentItems.map((lending) => {
                                     // Calculate statistics for this member
                                     const memberLendings = lendingData.filter(l => l.id_member === lending.id_member);
                                     const memberStats = {
@@ -263,6 +283,123 @@ const MemberHistory = () => {
                                         </div>
                                     );
                                 })}
+                            </div>
+                        )}
+
+                        {/* Pagination Component */}
+                        {filteredData.length > 0 && (
+                            <div className="px-6 py-4 border-t border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    {/* Entries per page selector */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-gray-700">Show</span>
+                                        <select
+                                            value={pageSize}
+                                            onChange={(e) => {
+                                                const newSize = Number(e.target.value);
+                                                setPageSize(newSize);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            <option value={9}>9</option>
+                                            <option value={18}>18</option>
+                                            <option value={27}>27</option>
+                                            <option value={36}>36</option>
+                                        </select>
+                                        <span className="text-sm text-gray-700">entries</span>
+                                    </div>
+
+                                    {/* Pagination info and controls */}
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-sm text-gray-700">
+                                            Showing {filteredData.length > 0 ? indexOfFirstItem + 1 : 0} 
+                                            to {Math.min(indexOfLastItem, filteredData.length)} 
+                                            of {filteredData.length} entries
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            {/* First Page */}
+                                            <button
+                                                onClick={() => handlePageChange(1)}
+                                                disabled={currentPage === 1}
+                                                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                                            >
+                                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+
+                                            {/* Previous */}
+                                            <button
+                                                onClick={() => handlePageChange(currentPage - 1)}
+                                                disabled={currentPage === 1}
+                                                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                                            >
+                                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M12.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+
+                                            {/* Page Numbers */}
+                                            <div className="flex items-center gap-1">
+                                                {[...Array(totalPages)].map((_, index) => {
+                                                    const pageNum = index + 1;
+                                                    // Show first page, last page, current page, and pages around current page
+                                                    if (
+                                                        pageNum === 1 ||
+                                                        pageNum === totalPages ||
+                                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                                    ) {
+                                                        return (
+                                                            <button
+                                                                key={pageNum}
+                                                                onClick={() => handlePageChange(pageNum)}
+                                                                className={`px-3 py-1 text-sm rounded-lg ${
+                                                                    currentPage === pageNum
+                                                                        ? 'bg-blue-600 text-white'
+                                                                        : 'text-gray-600 hover:bg-gray-100'
+                                                                }`}
+                                                            >
+                                                                {pageNum}
+                                                            </button>
+                                                        );
+                                                    }
+                                                    // Show dots for skipped pages
+                                                    if (
+                                                        pageNum === currentPage - 2 ||
+                                                        pageNum === currentPage + 2
+                                                    ) {
+                                                        return <span key={pageNum}>...</span>;
+                                                    }
+                                                    return null;
+                                                })}
+                                            </div>
+
+                                            {/* Next */}
+                                            <button
+                                                onClick={() => handlePageChange(currentPage + 1)}
+                                                disabled={currentPage === totalPages}
+                                                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                                            >
+                                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M7.293 15.707a1 1 0 001.414 0l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.414 1.414L11.586 10l-4.293 4.293a1 1 0 000 1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+
+                                            {/* Last Page */}
+                                            <button
+                                                onClick={() => handlePageChange(totalPages)}
+                                                disabled={currentPage === totalPages}
+                                                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                                            >
+                                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M4.293 15.707a1 1 0 001.414 0l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.414 1.414L8.586 10l-4.293 4.293a1 1 0 000 1.414zm6 0a1 1 0 001.414 0l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.414 1.414L14.586 10l-4.293 4.293a1 1 0 000 1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
