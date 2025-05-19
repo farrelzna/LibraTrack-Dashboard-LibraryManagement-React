@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import Modal from '../../components/Modal';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-import API_URL from '../../constant';
+import { API_URL } from '../../constant';
 
 export default function BooksIndex() {
     const [books, setBooks] = useState([]);
@@ -62,7 +62,7 @@ export default function BooksIndex() {
     const fetchBooks = async () => {
         const getToken = localStorage.getItem("token");
         axios
-            .get(`${API_URL}/buku`, {
+            .get(`${API_URL}buku`, {
                 headers: { Authorization: `Bearer ${getToken}` },
             })
             .then((res) => {
@@ -96,7 +96,7 @@ export default function BooksIndex() {
             });
 
             await axios.post(
-                "http://45.64.100.26:88/perpus-api/public/api/buku",
+                `${API_URL}buku`,
                 formData,
                 {
                     headers: {
@@ -127,7 +127,7 @@ export default function BooksIndex() {
     const handleDetail = async (id) => {
         try {
             const response = await axios.get(
-                `http://45.64.100.26:88/perpus-api/public/api/buku/${id}`,
+                `${API_URL}buku/${id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -145,7 +145,7 @@ export default function BooksIndex() {
     const handleEdit = async (id) => {
         try {
             const response = await axios.get(
-                `http://45.64.100.26:88/perpus-api/public/api/buku/${id}`,
+                `${API_URL}buku/${id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -213,7 +213,7 @@ export default function BooksIndex() {
     const confirmDelete = async () => {
         try {
             await axios.delete(
-                `http://45.64.100.26:88/perpus-api/public/api/buku/${selectedBook.id}`,
+                `${API_URL}buku/${selectedBook.id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -848,7 +848,7 @@ export default function BooksIndex() {
                             <option value="50">50</option>
                             <option value="100">100</option>
                         </select>
-                        <span className="text-sm text-gray-700">entries</span>
+                        <span className="text-sm text-gray-700">Entries</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -926,12 +926,12 @@ export default function BooksIndex() {
             <Modal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                title="Tambah Buku Baru"
+                title="Add New Book"
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">No Rak</label>
+                            <label className="block text-sm font-medium text-gray-700">Rack Number</label>
                             <input
                                 type="text"
                                 name="no_rak"
@@ -942,7 +942,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Judul</label>
+                            <label className="block text-sm font-medium text-gray-700">Title</label>
                             <input
                                 type="text"
                                 name="judul"
@@ -953,7 +953,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Pengarang</label>
+                            <label className="block text-sm font-medium text-gray-700">Author</label>
                             <input
                                 type="text"
                                 name="pengarang"
@@ -964,7 +964,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Tahun Terbit</label>
+                            <label className="block text-sm font-medium text-gray-700">Year Published</label>
                             <input
                                 type="number"
                                 name="tahun_terbit"
@@ -975,7 +975,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Penerbit</label>
+                            <label className="block text-sm font-medium text-gray-700">Published</label>
                             <input
                                 type="text"
                                 name="penerbit"
@@ -986,7 +986,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Stok</label>
+                            <label className="block text-sm font-medium text-gray-700">Stock</label>
                             <input
                                 type="number"
                                 name="stok"
@@ -1030,46 +1030,46 @@ export default function BooksIndex() {
             <Modal
                 isOpen={showDetailModal}
                 onClose={() => setShowDetailModal(false)}
-                title="Detail Buku"
+                title="Book Details"
             >
                 {selectedBook && (
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm text-gray-500">No Rak</p>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Rack Number</p>
                                 <p className="font-medium">{selectedBook.no_rak}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Judul</p>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Title</p>
                                 <p className="font-medium">{selectedBook.judul}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Pengarang</p>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Author</p>
                                 <p className="font-medium">{selectedBook.pengarang}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Tahun Terbit</p>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Year Published</p>
                                 <p className="font-medium">{selectedBook.tahun_terbit}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Penerbit</p>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Publisher</p>
                                 <p className="font-medium">{selectedBook.penerbit}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Stok</p>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Stock</p>
                                 <p className="font-medium">{selectedBook.stok}</p>
                             </div>
-                            <div className="col-span-2">
+                        </div>
+                            <div className="p-2 bg-gray-50 rounded">
                                 <p className="text-sm text-gray-500">Detail</p>
                                 <p className="font-medium">{selectedBook.detail}</p>
                             </div>
-                        </div>
-                        <div className="flex justify-end">
+                        <div>
                             <button
                                 onClick={() => setShowDetailModal(false)}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                             >
-                                Tutup
+                                Close   
                             </button>
                         </div>
                     </div>
@@ -1080,13 +1080,13 @@ export default function BooksIndex() {
             <Modal
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
-                title="Edit Buku"
+                title="Edit Book"
             >
                 {selectedBook && (
                     <form onSubmit={handleEditSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">No Rak</label>
+                                <label className="block text-sm font-medium text-gray-700">Rack Number</label>
                                 <input
                                     type="text"
                                     name="no_rak"
@@ -1097,7 +1097,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Judul</label>
+                                <label className="block text-sm font-medium text-gray-700">Title</label>
                                 <input
                                     type="text"
                                     name="judul"
@@ -1108,7 +1108,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Pengarang</label>
+                                <label className="block text-sm font-medium text-gray-700">Author</label>
                                 <input
                                     type="text"
                                     name="pengarang"
@@ -1119,7 +1119,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Tahun Terbit</label>
+                                <label className="block text-sm font-medium text-gray-700">TYear Published</label>
                                 <input
                                     type="number"
                                     name="tahun_terbit"
@@ -1130,7 +1130,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Penerbit</label>
+                                <label className="block text-sm font-medium text-gray-700">Publisher</label>
                                 <input
                                     type="text"
                                     name="penerbit"
@@ -1141,7 +1141,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Stok</label>
+                                <label className="block text-sm font-medium text-gray-700">Stock</label>
                                 <input
                                     type="number"
                                     name="stok"
@@ -1169,7 +1169,7 @@ export default function BooksIndex() {
                                 onClick={() => setShowEditModal(false)}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                             >
-                                Batal
+                                Cancel
                             </button>
                             <button
                                 type="submit"
@@ -1186,17 +1186,17 @@ export default function BooksIndex() {
             <Modal
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                title="Konfirmasi Hapus"
+                title="Confirm Delete"
             >
                 <div className="space-y-4">
                     {selectedBook && (
                         <>
                             <p className="text-gray-600">
-                                Apakah Anda yakin ingin menghapus buku ini?
+                            Are you sure you want to delete this book?
                             </p>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h3 className="font-medium text-gray-800">{selectedBook.judul}</h3>
-                                <p className="text-sm text-gray-600">Pengarang: {selectedBook.pengarang}</p>
+                                <p className="text-sm text-gray-600">Author: {selectedBook.pengarang}</p>
                             </div>
                             <div className="flex justify-end space-x-2 mt-4">
                                 <button
@@ -1204,13 +1204,13 @@ export default function BooksIndex() {
                                     onClick={() => setShowDeleteModal(false)}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                                 >
-                                    Batal
+                                    Cancel
                                 </button>
                                 <button
                                     onClick={confirmDelete}
                                     className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
                                 >
-                                    Hapus
+                                    Delete
                                 </button>
                             </div>
                         </>

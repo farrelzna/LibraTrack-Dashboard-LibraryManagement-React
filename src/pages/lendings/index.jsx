@@ -3,6 +3,7 @@ import axios from 'axios';
 import moment from 'moment';
 import Modal from '../../components/Modal';
 import Swal from 'sweetalert2';
+import { API_URL } from '../../constant';
 
 const Lendings = () => {
     const [form, setForm] = useState({
@@ -29,7 +30,6 @@ const Lendings = () => {
     const [books, setBooks] = useState([]);
     const [members, setMembers] = useState([]);
     const [lateFeesData, setLateFeesData] = useState([]); // State untuk data denda
-    const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
     const getToken = localStorage.getItem('token');
 
     useEffect(() => {
@@ -41,7 +41,7 @@ const Lendings = () => {
     const fetchPeminjaman = async () => {
         const getToken = localStorage.getItem('token');
         try {
-            const res = await axios.get(`${API_URL}/peminjaman`, {
+            const res = await axios.get(`${API_URL}peminjaman`, {
                 headers: {
                     Accept: 'application/json',
                     Authorization: `Bearer ${getToken}`
@@ -61,7 +61,7 @@ const Lendings = () => {
     const fetchBooks = async () => {
         const getToken = localStorage.getItem('token');
         try {
-            const response = await axios.get(`${API_URL}/buku`, {
+            const response = await axios.get(`${API_URL}buku`, {
                 headers: {
                     Accept: 'application/json',
                     Authorization: `Bearer ${getToken}`
@@ -101,7 +101,7 @@ const Lendings = () => {
     const fetchMembers = async () => {
         const getToken = localStorage.getItem('token');
         try {
-            const response = await axios.get(`${API_URL}/member`, {
+            const response = await axios.get(`${API_URL}member`, {
                 headers: {
                     Accept: 'application/json',
                     Authorization: `Bearer ${getToken}`
@@ -185,7 +185,7 @@ const Lendings = () => {
         }
 
         try {
-            await axios.post(`${API_URL}/peminjaman`, form, {
+            await axios.post(`${API_URL}peminjaman`, form, {
                 headers: {
                     Accept: 'application/json',
                     Authorization: `Bearer ${getToken}`
@@ -225,7 +225,7 @@ const Lendings = () => {
             const handleNormalReturn = async () => {
                 try {
                     const response = await axios.post(
-                        `${API_URL}/peminjaman/pengembalian/${item.id}`,
+                        `${API_URL}peminjaman/pengembalian/${item.id}`,
                         formData,
                         {
                             headers: {
@@ -253,7 +253,7 @@ const Lendings = () => {
                 try {
                     // 1. Proses pengembalian buku terlebih dahulu
                     await axios.post(
-                        `${API_URL}/peminjaman/pengembalian/${item.id}`,
+                        `${API_URL}peminjaman/pengembalian/${item.id}`,
                         formData,
                         {
                             headers: {
@@ -272,7 +272,7 @@ const Lendings = () => {
                         deskripsi: `User ${item.id_member} telah telat mengembalikan buku ${item.id_buku} selama ${selisihHari} hari`
                     };
 
-                    await axios.post(`${API_URL}/denda`, dendaData, {
+                    await axios.post(`${API_URL}denda`, dendaData, {
                         headers: {
                             Authorization: `Bearer ${getToken}`
                         }
@@ -415,7 +415,7 @@ const Lendings = () => {
     // Fungsi untuk mengambil data denda keterlambatan
     const fetchLateFees = async (member_id) => {
         try {
-            const response = await axios.get(`${API_URL}/denda`, {
+            const response = await axios.get(`${API_URL}denda`, {
                 headers: {
                     Accept: 'application/json',
                     Authorization: `Bearer ${getToken}`
@@ -433,8 +433,14 @@ const Lendings = () => {
             console.error('Error fetching late fees:', error);
             return [];
         }
-        p
     };    // Modal content
+
+    const handleClearSearch = () => {
+        setSearchQuery({
+            id_buku: '',
+            id_member: ''
+        });
+    };
 
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
@@ -542,7 +548,17 @@ const Lendings = () => {
 
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-800">Lending List</h2>
+                    <div className='flex justify-between'>
+                        <h2 className="text-lg font-semibold text-gray-800">Lending List</h2>
+                        <div>
+                            <button
+                                onClick={handleClearSearch}
+                                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
+                            >
+                                Clear Search
+                            </button>
+                        </div>
+                    </div>
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Search by Book ID</label>
@@ -637,10 +653,10 @@ const Lendings = () => {
                                     return (
                                         <tr key={item.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {books.find(book => book.id === item.id_buku)?.judul || 'Undefined'}
+                                                {books.find(book => book.id === item.id_buku)?.judul || 'Undefined'} - ID : {item.id_buku}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {members.find(member => member.id === item.id_member)?.nama || 'Undefined'}
+                                                {members.find(member => member.id === item.id_member)?.nama || 'Undefined'} - ID : {item.id_member}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{moment(item.tgl_pinjam).format('DD/MM/YYYY')}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{moment(item.tgl_pengembalian).format('DD/MM/YYYY')}</td>
@@ -789,29 +805,41 @@ const Lendings = () => {
                     onClose={handleCloseModal}
                     title="Detail Peminjaman"
                 >
-                    <div className="p-6">
-                        <div className="mb-4">
-                            <p><strong>ID Member:</strong> {detailPeminjaman.id_member}</p>
-                            <p><strong>ID Buku:</strong> {detailPeminjaman.id_buku}</p>
-                            <p><strong>Tanggal Pinjam:</strong> {detailPeminjaman.tgl_pinjam}</p>
-                            <p><strong>Tanggal Pengembalian:</strong> {detailPeminjaman.tgl_pengembalian}</p>
-                            <p><strong>Status:</strong> {detailPeminjaman.status_pengembalian ? 'Dikembalikan' : 'Belum dikembalikan'}</p>
-                        </div>
-
-                        {/* Tampilkan denda keterlambatan jika ada */}
-                        {lateFeesData.length > 0 && (
-                            <div className="mt-4">
-                                <h4 className="text-md font-semibold mb-2">Riwayat Denda Keterlambatan</h4>
-                                <div className="space-y-2">
-                                    {lateFeesData.map((denda, index) => (
-                                        <div key={index} className="p-2 bg-gray-50 rounded">
-                                            <p><strong>Jumlah Denda:</strong> {formatRupiah(denda.jumlah_denda)}</p>
-                                            <p><strong>Deskripsi:</strong> {denda.deskripsi}</p>
-                                        </div>
-                                    ))}
-                                </div>
+                    <div className="y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Id Member</p>
+                                <p className="font-medium">{detailPeminjaman.id_member}</p>
                             </div>
-                        )}
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Id Buku</p>
+                                <p className="font-medium">{detailPeminjaman.id_buku}</p>
+                            </div>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Tanggal Peminjaman</p>
+                                <p className="font-medium">{detailPeminjaman.tgl_pinjam}</p>
+                            </div>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Tanggal Pengembalian</p>
+                                <p className="font-medium">{detailPeminjaman.tgl_pengembalian}</p>
+                            </div>
+                            <div className="p-2 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-500">Status</p>
+                                <p className="font-medium">{detailPeminjaman.status_pengembalian ? 'Dikembalikan' : 'Belum dikembalikan'}</p>
+                            </div>
+                            {lateFeesData.map((denda, index) => (
+                                <div key={index} className="p-2 bg-gray-50 rounded">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Denda</p>
+                                        <p className="font-medium">{formatRupiah(denda.jumlah_denda)}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="text-sm text-gray-500">Deskripsi</p>
+                                        <p className="font-medium">{denda.deskripsi}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </Modal>
             )}

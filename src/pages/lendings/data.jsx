@@ -3,6 +3,7 @@ import axios from 'axios';
 import moment from 'moment';
 import Swal from 'sweetalert2';
 import Modal from '../../components/Modal';
+import { API_URL } from '../../constant';
 
 const MemberHistory = () => {
     const [lendingData, setLendingData] = useState([]);
@@ -39,29 +40,27 @@ const MemberHistory = () => {
                     throw new Error('No authentication token found');
                 }
 
-                const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
-
                 // Fetch all required data
                 const [lendingRes, membersRes, booksRes, finesRes] = await Promise.all([
-                    axios.get(`${API_URL}/peminjaman`, {
+                    axios.get(`${API_URL}peminjaman`, {
                         headers: {
                             Accept: 'application/json',
                             Authorization: `Bearer ${getToken}`
                         }
                     }),
-                    axios.get(`${API_URL}/member`, {
+                    axios.get(`${API_URL}member`, {
                         headers: {
                             Accept: 'application/json',
                             Authorization: `Bearer ${getToken}`
                         }
                     }),
-                    axios.get(`${API_URL}/buku`, {
+                    axios.get(`${API_URL}buku`, {
                         headers: {
                             Accept: 'application/json',
                             Authorization: `Bearer ${getToken}`
                         }
                     }),
-                    axios.get(`${API_URL}/denda`, {
+                    axios.get(`${API_URL}denda`, {
                         headers: {
                             Accept: 'application/json',
                             Authorization: `Bearer ${getToken}`
@@ -303,9 +302,9 @@ const MemberHistory = () => {
                                             className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             <option value={9}>9</option>
-                                            <option value={18}>18</option>
-                                            <option value={27}>27</option>
-                                            <option value={36}>36</option>
+                                            <option value={20}>20</option>
+                                            <option value={50}>50</option>
+                                            <option value={100}>100</option>
                                         </select>
                                         <span className="text-sm text-gray-700">entries</span>
                                     </div>

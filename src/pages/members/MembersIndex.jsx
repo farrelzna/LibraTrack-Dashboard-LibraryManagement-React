@@ -6,8 +6,7 @@ import Swal from "sweetalert2";
 import Modal from "../../components/Modal"; // Make sure you have this component
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-
-const API_URL = "http://45.64.100.26:88/perpus-api/public/api";
+import { API_URL } from "../../constant";
 
 export default function MemberManagement() {
   const [members, setMembers] = useState([]);
@@ -56,7 +55,7 @@ export default function MemberManagement() {
   const fetchMembers = () => {
     const getToken = localStorage.getItem("token");
     axios
-      .get(`${API_URL}/member`, {
+      .get(`${API_URL}member`, {
         headers: { Authorization: `Bearer ${getToken}` },
       })
       .then((res) => {
@@ -76,8 +75,8 @@ export default function MemberManagement() {
     e.preventDefault();
     const getToken = localStorage.getItem("token");
     const url = isEditMode
-      ? `${API_URL}/member/${currentMemberId}`
-      : `${API_URL}/member`;
+      ? `${API_URL}member/${currentMemberId}`
+      : `${API_URL}member`;
 
     const method = isEditMode ? axios.put : axios.post;
 
@@ -123,7 +122,7 @@ export default function MemberManagement() {
   const handleDeleteConfirm = () => {
     const getToken = localStorage.getItem("token");
     axios
-      .delete(`${API_URL}/member/${deleteTargetId}`, {
+      .delete(`${API_URL}member/${deleteTargetId}`, {
         headers: { Authorization: `Bearer ${getToken}` },
       })
       .then(() => {
@@ -149,7 +148,7 @@ export default function MemberManagement() {
   const fetchMemberDetail = (id) => {
     const getToken = localStorage.getItem("token");
     axios
-      .get(`${API_URL}/member/${id}`, {
+      .get(`${API_URL}member/${id}`, {
         headers: { Authorization: `Bearer ${getToken}` },
       })
       .then((res) => {
@@ -236,7 +235,7 @@ export default function MemberManagement() {
       setIsLoading(true);
       try {
         await Promise.all(selectedRows.map(id =>
-          axios.delete(`${API_URL}/member/${id}`, {
+          axios.delete(`${API_URL}member/${id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
           })
         ));
@@ -299,7 +298,7 @@ export default function MemberManagement() {
 
     try {
       const response = await axios.post(
-        `${API_URL}/member`,
+        `${API_URL}member`,
         formModal,
         {
           headers: {
@@ -878,19 +877,19 @@ export default function MemberManagement() {
           {selectedMember ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="p-2 bg-gray-50 rounded">
                   <p className="text-sm text-gray-500">Id Number</p>
                   <p className="font-medium">{selectedMember.no_ktp}</p>
                 </div>
-                <div>
+                <div className="p-2 bg-gray-50 rounded">
                   <p className="text-sm text-gray-500">Name</p>
                   <p className="font-medium">{selectedMember.nama}</p>
                 </div>
-                <div>
+                <div className="p-2 bg-gray-50 rounded">
                   <p className="text-sm text-gray-500">Address</p>
                   <p className="font-medium">{selectedMember.alamat}</p>
                 </div>
-                <div>
+                <div className="p-2 bg-gray-50 rounded">
                   <p className="text-sm text-gray-500">Birth Date</p>
                   <p className="font-medium">{selectedMember.tgl_lahir}</p>
                 </div>
@@ -900,7 +899,7 @@ export default function MemberManagement() {
                   onClick={() => setIsDetailModalOpen(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                 >
-                  Tutup
+                  Close
                 </button>
               </div>
             </div>

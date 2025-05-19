@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Modal from '../../components/Modal';
 import Swal from 'sweetalert2';
-import { API_URL } from '../../constant';
 
 const Restorations = () => {
     const [form, setForm] = useState({
@@ -17,7 +16,10 @@ const Restorations = () => {
     const [dendaData, setDendaData] = useState([]);
     const [detailDenda, setDetailDenda] = useState(null);
     const [showModal, setShowModal] = useState(false);
-
+    const [sortConfig, setSortConfig] = useState({
+        key: null,
+        direction: 'asc'
+    });
     // Search and pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -44,7 +46,6 @@ const Restorations = () => {
     const totalPages = Math.ceil(filteredData.length / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const paginatedData = filteredData.slice(startIndex, endIndex);
 
     // Reset to first page when data or page size changes
     useEffect(() => {
@@ -53,25 +54,30 @@ const Restorations = () => {
 
     const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
     const apiUrl = `${API_URL}/denda`;
-    const getToken = localStorage.getItem('token');
+    const getToken = localStorage.getItem('access_token');
 
     const fetchDenda = useCallback(async () => {
         try {
+            console.log('Fetching with token:', getToken); // Log token
             const res = await axios.get(apiUrl, {
                 headers: {
                     Accept: 'application/json',
                     Authorization: `Bearer ${getToken}`
                 }
             });
-            setDendaData(res.data.data || []);
+            console.log('Raw API Response:', res); // Log seluruh response
+
+            if (res.data && Array.isArray(res.data.data)) {
+                setDendaData(res.data.data);
+            } else if (Array.isArray(res.data)) {
+                setDendaData(res.data);
+            } else {
+                console.error('Unexpected data format:', res.data);
+                setDendaData([]);
+            }
         } catch (error) {
-            console.error('Failed to fetch fine data:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to fetch fine data',
-                confirmButtonColor: '#3B82F6'
-            });
+            console.error('Error detail:', error.response?.data || error.message);
+            // ... existing code ...
         }
     }, [getToken, apiUrl]);
 
@@ -172,7 +178,9 @@ const Restorations = () => {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(amount);
-    }; const handleChange = (e) => {
+    };
+
+    const handleChange = (e) => {
         const value = ['id_buku', 'id_member'].includes(e.target.name) ?
             parseInt(e.target.value) : e.target.value;
         setForm({ ...form, [e.target.name]: value });
@@ -256,6 +264,79 @@ const Restorations = () => {
         setShowModal(false);
         setDetailDenda(null);
     };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+
+        // Notifikasi sorting
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: `Sorted by ${key} ${direction === 'asc' ? 'ascending' : 'descending'}`
+        });
+    };
+
+    const sortData = (data) => {
+        if (!sortConfig.key) return data;
+
+        return [...data].sort((a, b) => {
+            // Untuk nilai numerik
+            if (['jumlah_denda', 'id_buku', 'id_member'].includes(sortConfig.key)) {
+                const valueA = parseFloat(a[sortConfig.key]) || 0;
+                const valueB = parseFloat(b[sortConfig.key]) || 0;
+                return sortConfig.direction === 'asc' ? valueA - valueB : valueB - valueA;
+            }
+
+            // Untuk tanggal
+            if (['created_at', 'updated_at'].includes(sortConfig.key)) {
+                const dateA = new Date(a[sortConfig.key]);
+                const dateB = new Date(b[sortConfig.key]);
+                return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+            }
+
+            // Untuk teks (jenis_denda, deskripsi)
+            const valueA = String(a[sortConfig.key]).toLowerCase();
+            const valueB = String(b[sortConfig.key]).toLowerCase();
+            if (sortConfig.direction === 'asc') {
+                return valueA.localeCompare(valueB);
+            }
+            return valueB.localeCompare(valueA);
+        });
+    };
+
+    // Komponen untuk ikon sorting
+    const SortIcon = ({ column }) => {
+        if (sortConfig.key === column) {
+            return sortConfig.direction === 'asc' ? (
+                <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+                </svg>
+            ) : (
+                <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            );
+        }
+        return (
+            <svg className="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+        );
+    };
+
+    const sortedData = sortData(filteredData);
+    const paginatedData = sortedData.slice(startIndex, endIndex);
 
     // Handle search input changes
     const handleSearch = (e) => {
@@ -405,20 +486,19 @@ const Restorations = () => {
             {/* Table Section */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-800">Fine List</h2>
+                    <div className="flex justify-between">
+                        <h2 className="text-lg font-semibold text-gray-800">Fine List</h2>
+                        <div>
+                            <button
+                                onClick={handleClearSearch}
+                                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
+                            >
+                                Clear Search
+                            </button>
+                        </div>
+                    </div>
                     <div className="mt-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Search by Member ID</label>
-                                <input
-                                    type="number"
-                                    name="memberId"
-                                    value={searchQuery.memberId}
-                                    onChange={handleSearch}
-                                    placeholder="Enter member ID"
-                                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Search by Book ID</label>
                                 <input
@@ -430,17 +510,17 @@ const Restorations = () => {
                                     className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
-                        </div>
-                        <div className="flex justify-end">
-                            <button
-                                onClick={handleClearSearch}
-                                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
-                            >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear Search
-                            </button>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Search by Member ID</label>
+                                <input
+                                    type="number"
+                                    name="memberId"
+                                    value={searchQuery.memberId}
+                                    onChange={handleSearch}
+                                    placeholder="Enter member ID"
+                                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -449,36 +529,75 @@ const Restorations = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    onClick={() => handleSort('id_buku')}
+                                >
+                                    <div className="flex items-center">
+                                        Book
+                                        <SortIcon column="id_buku" />
+                                    </div>
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    onClick={() => handleSort('id_member')}
+                                >
+                                    <div className="flex items-center">
+                                        Member
+                                        <SortIcon column="id_member" />
+                                    </div>
+                                </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fine Amount</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fine Type</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    onClick={() => handleSort('jenis_denda')}
+                                >
+                                    <div className="flex items-center">
+                                        Fine Type
+                                        <SortIcon column="id_buku" />
+                                    </div>
+                                </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {paginatedData.map((denda, index) => (
-                                <tr key={`${denda.id_member}-${index}`} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{denda.id_member}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{denda.id_buku}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatRupiah(denda.jumlah_denda)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{denda.jenis_denda}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{denda.deskripsi}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button
-                                            onClick={() => handleShowDetail(denda.id_member)}
-                                            className="inline-flex items-center px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                                        >
-                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            Details
-                                        </button>
+                            {dendaData.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-8 text-gray-500">
+                                        Tidak ada data denda yang ditampilkan
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                paginatedData.map((denda, index) => (
+                                    <tr key={`${denda.id_member}-${index}`} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {books.find(book => book.id === denda.id_buku)?.judul || 'Undefined'} - ID: {denda.id_buku}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {members.find(member => member.id === denda.id_member)?.nama || 'Undefined'} - ID: {denda.id_member}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {formatRupiah(denda.jumlah_denda)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {denda.jenis_denda}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {denda.deskripsi}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button
+                                                onClick={() => handleShowDetail(denda.id_member)}
+                                                className="inline-flex items-center px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                            >
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -550,11 +669,10 @@ const Restorations = () => {
                                             <button
                                                 key={pageNumber}
                                                 onClick={() => setCurrentPage(pageNumber)}
-                                                className={`px-3 py-1 text-sm rounded-lg ${
-                                                    currentPage === pageNumber
-                                                        ? 'bg-blue-600 text-white'
-                                                        : 'bg-white border border-gray-300 hover:bg-gray-50'
-                                                }`}
+                                                className={`px-3 py-1 text-sm rounded-lg ${currentPage === pageNumber
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-white border border-gray-300 hover:bg-gray-50'
+                                                    }`}
                                             >
                                                 {pageNumber}
                                             </button>
