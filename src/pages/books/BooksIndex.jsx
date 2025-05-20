@@ -7,6 +7,7 @@ import Modal from '../../components/Modal';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { API_URL } from '../../constant';
+import Alert from '../../components/Alert';
 
 export default function BooksIndex() {
     const [books, setBooks] = useState([]);
@@ -28,6 +29,11 @@ export default function BooksIndex() {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertConfig, setAlertConfig] = useState({
+        type: 'success',
+        message: ''
+    });
     const [selectedBook, setSelectedBook] = useState(null);
     const [editForm, setEditForm] = useState({
         no_rak: "",
@@ -106,7 +112,11 @@ export default function BooksIndex() {
                     },
                 }
             );
-            Swal.fire("Berhasil!", "Buku baru telah ditambahkan.", "success");
+            setAlertConfig({
+                type: 'success',
+                message: 'New book added successfully'
+            });
+            setShowAlert(true);
             setShowAddModal(false);
             setForm({
                 no_rak: "",
@@ -119,7 +129,11 @@ export default function BooksIndex() {
             });
             fetchBooks();
         } catch (err) {
-            Swal.fire("Gagal!", "Tidak dapat menambahkan buku.", "error");
+            setAlertConfig({
+                type: 'error',
+                message: 'Failed to add a book'
+            });
+            setShowAlert(true);
         }
     };
 
@@ -186,7 +200,7 @@ export default function BooksIndex() {
             formData.append("_method", "PUT");
 
             await axios.post(
-                `http://45.64.100.26:88/perpus-api/public/api/buku/${selectedBook.id}`,
+                `${API_URL}buku/${selectedBook.id}`,
                 formData,
                 {
                     headers: {
@@ -196,12 +210,20 @@ export default function BooksIndex() {
                     },
                 }
             );
-            Swal.fire("Berhasil!", "Buku berhasil diupdate.", "success");
+            setAlertConfig({
+                type: 'success',
+                message: 'Book Successfully Updated'
+            });
+            setShowAlert(true);
             setShowEditModal(false);
             setSelectedBook(null);
             fetchBooks();
         } catch (err) {
-            Swal.fire("Gagal!", "Tidak dapat mengupdate buku.", "error");
+            setAlertConfig({
+                type: 'error',
+                message: 'Failed to Update Book'
+            });
+            setShowAlert(true);
         }
     };
 
@@ -224,9 +246,17 @@ export default function BooksIndex() {
             setBooks(books.filter((book) => book.id !== selectedBook.id));
             setShowDeleteModal(false);
             setSelectedBook(null);
-            Swal.fire("Berhasil!", "Buku telah dihapus.", "success");
+            setAlertConfig({
+                type: 'success',
+                message: 'Book Deleted Successfully'
+            });
+            setShowAlert(true);
         } catch (err) {
-            Swal.fire("Gagal!", "Tidak dapat menghapus buku.", "error");
+            setAlertConfig({
+                type: 'error',
+                message: 'Failed to Delete Book'
+            });
+            setShowAlert(true);
         }
     };
 
@@ -675,14 +705,21 @@ export default function BooksIndex() {
     
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
+            {showAlert && (
+                <Alert
+                    type={alertConfig.type}
+                    message={alertConfig.message}
+                    onClose={() => setShowAlert(false)}
+                />
+            )}
             {/* Header Section */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">Book Management</h1>
+                <h1 className="text-3xl text-gray-800 tracking-tight">Book's Management</h1>
                 <p className="mt-2 text-gray-600">Manage your library's book collection</p>
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="bg-white rounded-xl shadow-sm p-6">
                     <div className="flex items-center justify-between">
                         <div>
@@ -800,7 +837,8 @@ export default function BooksIndex() {
                         {/* Add New Book */}
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center gap-2"
+                            className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
+                            style={{ width: '200px' }}
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1014,13 +1052,13 @@ export default function BooksIndex() {
                             onClick={() => setShowAddModal(false)}
                             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                         >
-                            Batal
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
                         >
-                            Simpan
+                            Create Books
                         </button>
                     </div>
                 </form>
@@ -1064,7 +1102,7 @@ export default function BooksIndex() {
                                 <p className="text-sm text-gray-500">Detail</p>
                                 <p className="font-medium">{selectedBook.detail}</p>
                             </div>
-                        <div>
+                        <div className="flex justify-end">
                             <button
                                 onClick={() => setShowDetailModal(false)}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"

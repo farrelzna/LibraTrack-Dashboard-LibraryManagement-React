@@ -15,10 +15,7 @@ const Lendings = () => {
     const [dataPeminjaman, setDataPeminjaman] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [searchQuery, setSearchQuery] = useState({
-        id_buku: '',
-        id_member: ''
-    });
+    const [searchQuery, setSearchQuery] = useState('');
     const [filteredData, setFilteredData] = useState([]);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
@@ -39,14 +36,9 @@ const Lendings = () => {
     }, []);
 
     const fetchPeminjaman = async () => {
-        const getToken = localStorage.getItem('token');
+        // const getToken = localStorage.getItem('token');
         try {
-            const res = await axios.get(`${API_URL}peminjaman`, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
+            const res = await axios.get(`${API_URL}peminjaman`);
             setDataPeminjaman(res.data.data || []);
         } catch (error) {
             console.error('Failed to fetch lending data:', error);
@@ -59,16 +51,11 @@ const Lendings = () => {
         }
     };
     const fetchBooks = async () => {
-        const getToken = localStorage.getItem('token');
+        // const getToken = localStorage.getItem('token');
         try {
-            const response = await axios.get(`${API_URL}buku`, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
-            console.log('Full API Response:', response); // Debug full response
-            console.log('Response data:', response.data); // Debug data structure
+            const response = await axios.get(`${API_URL}buku`);
+            // console.log('Full API Response:', response); // Debug full response
+            // console.log('Response data:', response.data); // Debug data structure
 
             // Set books data directly from response.data
             setBooks(response.data);
@@ -99,15 +86,10 @@ const Lendings = () => {
     };
 
     const fetchMembers = async () => {
-        const getToken = localStorage.getItem('token');
+        // const getToken = localStorage.getItem('token');
         try {
-            const response = await axios.get(`${API_URL}member`, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
-            console.log('Members response:', response.data); // Debug log
+            const response = await axios.get(`${API_URL}member`);
+            // console.log('Members response:', response.data); // Debug log
             setMembers(response.data);
 
             const Toast = Swal.mixin({
@@ -135,31 +117,47 @@ const Lendings = () => {
     };
 
     const handleSearch = (e) => {
-        const { name, value } = e.target;
-        setSearchQuery(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setSearchQuery(e.target.value);
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
     };
 
     useEffect(() => {
-        // Jika kedua field pencarian kosong, tampilkan semua data
-        if (searchQuery.id_buku === '' && searchQuery.id_member === '') {
+        if (!searchQuery.trim()) {
             setFilteredData(dataPeminjaman);
             return;
         }
 
-        // Filter berdasarkan kriteria pencarian
+        const searchTerm = searchQuery.toLowerCase().trim();
+
         const filtered = dataPeminjaman.filter(item => {
-            const bookIdMatch = searchQuery.id_buku === '' ||
-                item.id_buku === parseInt(searchQuery.id_buku);
-            const memberIdMatch = searchQuery.id_member === '' ||
-                item.id_member === parseInt(searchQuery.id_member);
-            return bookIdMatch && memberIdMatch;
+            const book = books.find(b => b.id === item.id_buku);
+            const member = members.find(m => m.id === item.id_member);
+
+            // Mencari berdasarkan ID Buku
+            const bookIdMatch = String(item.id_buku).toLowerCase().includes(searchTerm);
+
+            // Mencari berdasarkan Judul Buku
+            const titleMatch = book && book.judul.toLowerCase().includes(searchTerm);
+
+            // Mencari berdasarkan ID Member
+            const memberIdMatch = String(item.id_member).toLowerCase().includes(searchTerm);
+
+            // Mencari berdasarkan Nama Member
+            const nameMatch = member && member.nama.toLowerCase().includes(searchTerm);
+
+            // Mencari berdasarkan Tanggal
+            const dateMatch =
+                item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
+                item.tgl_pengembalian.toLowerCase().includes(searchTerm);
+
+            return bookIdMatch || titleMatch || memberIdMatch || nameMatch || dateMatch;
         });
 
         setFilteredData(filtered);
-    }, [searchQuery, dataPeminjaman]);
+    }, [searchQuery, dataPeminjaman, books, members]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -185,12 +183,7 @@ const Lendings = () => {
         }
 
         try {
-            await axios.post(`${API_URL}peminjaman`, form, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
+            await axios.post(`${API_URL}peminjaman`, form)
             setForm({ id_buku: '', id_member: '', tgl_pinjam: '', tgl_pengembalian: '' });
             fetchPeminjaman();
             Swal.fire({
@@ -226,12 +219,7 @@ const Lendings = () => {
                 try {
                     const response = await axios.post(
                         `${API_URL}peminjaman/pengembalian/${item.id}`,
-                        formData,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${getToken}`
-                            }
-                        }
+                        formData
                     );
 
                     if (response.status === 200) {
@@ -255,11 +243,6 @@ const Lendings = () => {
                     await axios.post(
                         `${API_URL}peminjaman/pengembalian/${item.id}`,
                         formData,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${getToken}`
-                            }
-                        }
                     );
 
                     // 2. Buat record denda
@@ -272,16 +255,17 @@ const Lendings = () => {
                         deskripsi: `User ${item.id_member} telah telat mengembalikan buku ${item.id_buku} selama ${selisihHari} hari`
                     };
 
-                    await axios.post(`${API_URL}denda`, dendaData, {
-                        headers: {
-                            Authorization: `Bearer ${getToken}`
-                        }
-                    });
+                    await axios.post(`${API_URL}denda`, dendaData)
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Buku Dikembalikan Terlambat',
-                        html: `Kamu telat ${selisihHari} hari.<br>Denda: ${formatRupiah(jumlahDenda)}`,
+                        title: 'Book Returned Late',
+                        text: 'Late return penalty has been added',
+                        html: `
+                            <p>Book: ${item.judul}</p>
+                            <p>Days Late: ${selisihHari} days</p>
+                            <p>Penalty Fee: ${formatRupiah(jumlahDenda)}</p>
+                        `,
                         confirmButtonColor: '#3B82F6'
                     });
 
@@ -415,12 +399,7 @@ const Lendings = () => {
     // Fungsi untuk mengambil data denda keterlambatan
     const fetchLateFees = async (member_id) => {
         try {
-            const response = await axios.get(`${API_URL}denda`, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
+            const response = await axios.get(`${API_URL}denda`);
 
             // Filter denda keterlambatan untuk member tertentu
             const memberLateFees = response.data?.data?.filter(denda =>
@@ -433,20 +412,13 @@ const Lendings = () => {
             console.error('Error fetching late fees:', error);
             return [];
         }
-    };    // Modal content
-
-    const handleClearSearch = () => {
-        setSearchQuery({
-            id_buku: '',
-            id_member: ''
-        });
     };
 
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
             {/* Header Section */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">Book Lending</h1>
+                <h1 className="text-3xl  text-gray-800">Book Lending</h1>
                 <p className="mt-2 text-gray-600">Manage library book lending</p>
             </div>
 
@@ -512,7 +484,7 @@ const Lendings = () => {
                                 onClick={handlePeminjaman}
                                 className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors justify-center"
                             >
-                                Borrow Book
+                                Borrow Books
                             </button>
                         </form>
                     </div>
@@ -541,6 +513,13 @@ const Lendings = () => {
                                 </svg>
                                 Late returns will incur a fine
                             </li>
+                            <li className="flex items-center text-gray-700">
+                                <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1M12 20v1M3 12h1M20 12h1" />
+                                </svg>
+                                "Undefined" Data not available (deleted)
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -548,40 +527,36 @@ const Lendings = () => {
 
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
-                    <div className='flex justify-between'>
+                    <div>
                         <h2 className="text-lg font-semibold text-gray-800">Lending List</h2>
-                        <div>
-                            <button
-                                onClick={handleClearSearch}
-                                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
-                            >
-                                Clear Search
-                            </button>
-                        </div>
                     </div>
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Search by Book ID</label>
-                            <input
-                                type="number"
-                                name="id_buku"
-                                value={searchQuery.id_buku}
-                                onChange={handleSearch}
-                                placeholder="Enter Book ID"
-                                className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={handleSearch}
+                                    placeholder="Search by Book ID, Book Title, Member ID, Member Name, or Date..."
+                                    className="w-full p-3 pl-10 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <div className="absolute left-3 top-4 text-gray-400">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Search by Member ID</label>
-                            <input
-                                type="number"
-                                name="id_member"
-                                value={searchQuery.id_member}
-                                onChange={handleSearch}
-                                placeholder="Enter Member ID"
-                                className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        </div>
+                        {searchQuery && (
+                            <button
+                                onClick={handleClearSearch}
+                                className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -639,14 +614,14 @@ const Lendings = () => {
                                 paginatedData.map((item) => {
                                     const isLate = !item.status_pengembalian && moment().isAfter(moment(item.tgl_pengembalian));
                                     const isReturned = item.status_pengembalian;
-                                    let statusClass = 'text-green-600';
+                                    let statusClass = 'text-green-400';
                                     let statusText = 'Active';
 
                                     if (isReturned) {
-                                        statusClass = 'text-gray-600';
+                                        statusClass = 'text-gray-400';
                                         statusText = 'Returned';
                                     } else if (isLate) {
-                                        statusClass = 'text-red-600';
+                                        statusClass = 'text-red-400';
                                         statusText = 'Late';
                                     }
 
@@ -803,42 +778,59 @@ const Lendings = () => {
                 <Modal
                     isOpen={showModal}
                     onClose={handleCloseModal}
-                    title="Detail Peminjaman"
+                    title="Borrowing Details"
                 >
-                    <div className="y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Id Member</p>
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
+                            <div>
+                                <p className="text-sm text-gray-500">Member ID</p>
                                 <p className="font-medium">{detailPeminjaman.id_member}</p>
                             </div>
-                            <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Id Buku</p>
+                            <div>
+                                <p className="text-sm text-gray-500">Book ID</p>
                                 <p className="font-medium">{detailPeminjaman.id_buku}</p>
                             </div>
-                            <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Tanggal Peminjaman</p>
+                            <div>
+                                <p className="text-sm text-gray-500">Borrowing Date</p>
                                 <p className="font-medium">{detailPeminjaman.tgl_pinjam}</p>
                             </div>
-                            <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Tanggal Pengembalian</p>
+                            <div>
+                                <p className="text-sm text-gray-500">Return Date</p>
                                 <p className="font-medium">{detailPeminjaman.tgl_pengembalian}</p>
                             </div>
-                            <div className="p-2 bg-gray-50 rounded">
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
+                            <div>
                                 <p className="text-sm text-gray-500">Status</p>
-                                <p className="font-medium">{detailPeminjaman.status_pengembalian ? 'Dikembalikan' : 'Belum dikembalikan'}</p>
+                                <p className="font-medium">
+                                    {detailPeminjaman.status_pengembalian
+                                        ? 'Returned'
+                                        : moment().isAfter(moment(detailPeminjaman.tgl_pengembalian))
+                                            ? 'Late'
+                                            : 'Active'}
+                                </p>
                             </div>
-                            {lateFeesData.map((denda, index) => (
-                                <div key={index} className="p-2 bg-gray-50 rounded">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Denda</p>
-                                        <p className="font-medium">{formatRupiah(denda.jumlah_denda)}</p>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <p className="text-sm text-gray-500">Deskripsi</p>
-                                        <p className="font-medium">{denda.deskripsi}</p>
+                        </div>
+                        <div className="space-y-3">
+                            <h3 className="font-semibold text-gray-900">Fines History</h3>
+                            <div className="border border-gray-50 bg-gray-50 rounded-lg">
+                                <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                    <div className="space-y-2 p-3">
+                                        {lateFeesData.map((denda, index) => (
+                                            <div key={index} className="bg-red-50 p-3 rounded-lg">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-red-700 font-medium">
+                                                        {formatRupiah(denda.jumlah_denda)}
+                                                    </span>
+                                                    <span className="text-red-700 font-medium max-w-[200px] truncate block">
+                                                        {denda.deskripsi}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
                 </Modal>

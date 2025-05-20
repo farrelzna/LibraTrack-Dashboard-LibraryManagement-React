@@ -6,13 +6,17 @@ import Modal from '../../components/Modal';
 import { API_URL } from '../../constant';
 
 const MemberHistory = () => {
+    const [members, setMembers] = useState([]);
+    const [books, setBooks] = useState([])
     const [lendingData, setLendingData] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [selectedLending, setSelectedLending] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(9);
     const [filteredData, setFilteredData] = useState([]);
+    const [groupedLendings, setGroupedLendings] = useState([]);
 
     // Calculate pagination values
     const indexOfLastItem = currentPage * pageSize;
@@ -36,64 +40,57 @@ const MemberHistory = () => {
             setLoading(true);
             try {
                 const getToken = localStorage.getItem('token');
-                if (!getToken) {
-                    throw new Error('No authentication token found');
-                }
+                if (!getToken) throw new Error('No token found');
 
-                // Fetch all required data
+                // Fetch all data
                 const [lendingRes, membersRes, booksRes, finesRes] = await Promise.all([
                     axios.get(`${API_URL}peminjaman`, {
-                        headers: {
-                            Accept: 'application/json',
-                            Authorization: `Bearer ${getToken}`
-                        }
+                        headers: { Authorization: `Bearer ${getToken}` }
                     }),
                     axios.get(`${API_URL}member`, {
-                        headers: {
-                            Accept: 'application/json',
-                            Authorization: `Bearer ${getToken}`
-                        }
+                        headers: { Authorization: `Bearer ${getToken}` }
                     }),
                     axios.get(`${API_URL}buku`, {
-                        headers: {
-                            Accept: 'application/json',
-                            Authorization: `Bearer ${getToken}`
-                        }
+                        headers: { Authorization: `Bearer ${getToken}` }
                     }),
                     axios.get(`${API_URL}denda`, {
-                        headers: {
-                            Accept: 'application/json',
-                            Authorization: `Bearer ${getToken}`
-                        }
-                    })
+                        headers: { Authorization: `Bearer ${getToken}` }
+                    }),
                 ]);
 
-                // Get data from responses
                 const lendings = lendingRes.data?.data || [];
-                const members = membersRes.data?.data || [];
-                const books = booksRes.data?.data || [];
+                const rawMemberData = membersRes.data || [];
+                const rawBookData = booksRes.data || [];
                 const fines = finesRes.data?.data || [];
 
-                // Process and combine the data                console.log('Members data:', members);
-                console.log('Lendings data:', lendings);
+                // Filter members yang valid
+                const members = Array.isArray(rawMemberData)
+                    ? rawMemberData.filter(m => m && typeof m.id !== 'undefined')
+                    : [];
+
+                const books = Array.isArray(booksRes.data)
+                    ? rawBookData.filter(b => b && typeof b.id !== 'undefined')
+                    : [];
+
+                // console.log("✅ Members response:", membersRes.data);
+                // console.log("✅ Filtered members:", members);
+
+                setMembers(members);
+                setBooks(books);
 
                 const processedLendings = lendings.map(lending => {
-                    console.log('Processing lending:', lending);
-                    const member = members.find(m => parseInt(m.id) === parseInt(lending.id_member));
-                    console.log('Found member:', member, 'for id_member:', lending.id_member, 'member.id type:', typeof member?.id, 'lending.id_member type:', typeof lending.id_member);
-
-                    const book = books.find(b => parseInt(b.id) === parseInt(lending.id_buku));
-                    console.log('Found book:', book, 'for id_buku:', lending.id_buku);
-
+                    const member = members.find(m => m.id.toString() === lending.id_member.toString());
+                    const book = books.find(b => b.id.toString() === lending.id_buku.toString());
                     const relatedFines = fines.filter(f =>
-                        f.id_member === lending.id_member &&
-                        f.id_buku === lending.id_buku
+                        f.id_member.toString() === lending.id_member.toString() &&
+                        f.id_buku.toString() === lending.id_buku.toString()
                     );
 
                     return {
                         ...lending,
-                        memberName: member?.name || 'Unknown Member',
-                        memberPhone: member?.no_telp || 'No Phone',
+                        memberName: member?.nama || 'Unknown Member',
+                        memberNumberID: member?.no_ktp || 'No ID Number',
+                        memberID: member?.id || 'No ID',
                         bookTitle: book?.judul || `Book #${lending.id_buku}`,
                         fines: relatedFines,
                         totalFines: relatedFines.reduce((sum, fine) =>
@@ -102,10 +99,32 @@ const MemberHistory = () => {
                     };
                 });
 
-                console.log('Processed lendings:', processedLendings);
-                setLendingData(processedLendings);
-                setLoading(false);
+                // Setelah membuat processedLendings
+                const lendingsGroupedByMember = processedLendings.reduce((acc, lending) => {
+                    const memberId = lending.id_member.toString();
+                    if (!acc[memberId]) {
+                        acc[memberId] = {
+                            memberName: lending.memberName,
+                            memberNumberID: lending.memberNumberID,
+                            memberID: lending.memberID,
+                            bookTitle: lending.bookTitle,
+                            lendings: [],
+                            fines: [], // akan diisi dari semua peminjaman dia
+                            totalFines: 0,
+                        };
+                    }
+                    acc[memberId].lendings.push(lending);
+                    acc[memberId].fines.push(...lending.fines);
+                    acc[memberId].totalFines += lending.totalFines;
+                    return acc;
+                }, {});
 
+                const groupedLendingsArray = Object.values(lendingsGroupedByMember);
+
+                setGroupedLendings(groupedLendingsArray);
+
+
+                setLendingData(processedLendings);
             } catch (error) {
                 console.error('Error loading data:', error);
                 Swal.fire({
@@ -114,20 +133,35 @@ const MemberHistory = () => {
                     text: 'Failed to load data: ' + (error.response?.data?.message || error.message),
                     confirmButtonColor: '#3B82F6'
                 });
+            } finally {
                 setLoading(false);
             }
         };
 
         loadData();
     }, []);
-    const handleShowDetails = (lending) => {
+
+    const handleShowDetails = (memberGroup) => {
+        if (!memberGroup) {
+            console.warn('handleShowDetails dipanggil tanpa lending');
+            return;
+        }
+        console.log('memberGroup:', memberGroup);
         // Get all lendings for this member
-        const memberBorrowHistory = lendingData.filter(l => l.id_member === lending.id_member);
+        const memberBorrowHistory = lendingData.filter(l =>
+            l?.id_member !== undefined &&
+            memberGroup?.memberID !== undefined &&
+            l.id_member.toString() === memberGroup.memberID.toString()
+        );
+
+        console.log('memberBorrowHistory:', memberBorrowHistory);
+
 
         // Add borrowing history to the selected lending
         setSelectedLending({
-            ...lending,
-            borrowHistory: memberBorrowHistory
+            ...memberGroup,
+            borrowHistory: memberBorrowHistory,
+
         });
         setShowModal(true);
     };
@@ -136,6 +170,10 @@ const MemberHistory = () => {
         setShowModal(false);
         setSelectedLending(null);
     };
+
+    const uniqueBookTitles = selectedLending && selectedLending.borrowHistory
+        ? [...new Set(selectedLending.borrowHistory.map(borrow => borrow.bookTitle))]
+        : [];
 
     if (loading) {
         return (
@@ -193,48 +231,34 @@ const MemberHistory = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                                {currentItems.map((lending) => {
-                                    // Calculate statistics for this member
-                                    const memberLendings = lendingData.filter(l => l.id_member === lending.id_member);
+                                {groupedLendings.map((memberGroup, index) => {
+                                    const memberLendings = memberGroup.lendings;
+                                    // const memberLendings = lendingData.filter(l => l.id_member === lending.id_member);
                                     const memberStats = {
-                                        totalFines: memberLendings.filter(l => l.fines.length > 0).length,
+                                        totalFines: memberGroup.fines.length,
                                         returned: memberLendings.filter(l => l.status_pengembalian).length,
-                                        active: memberLendings.filter(l => !l.status_pengembalian).length
+                                        active: memberLendings.filter(l => !l.status_pengembalian).length,
                                     };
 
                                     return (
-                                        <div key={lending.id}
+                                        <div key={index}
                                             className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
                                             {/* Card Header - Keep existing header */}
-                                            <div className={`relative px-6 py-4 ${lending.status_pengembalian
+                                            <div className={`relative px-6 py-4 ${memberGroup.lendings[0]?.status_pengembalian
                                                 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
-                                                : moment().isAfter(moment(lending.tgl_pengembalian))
+                                                : moment().isAfter(moment(memberGroup.lendings[0]?.tgl_pengembalian))
                                                     ? 'bg-gradient-to-r from-red-500 to-red-600'
                                                     : 'bg-gradient-to-r from-blue-500 to-blue-600'
                                                 }`}>
                                                 <div className="flex justify-between items-start mb-4">
                                                     <div>
                                                         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                                                            #{lending.id}
-                                                            <span className="text-sm font-normal opacity-80">
-                                                                | ID Buku: {lending.id_buku} - {lending.bookTitle}
-                                                            </span>
+                                                            {memberGroup.memberName}
                                                         </h2>
-                                                        <p className="text-white/90 mt-1 font-medium">{lending.memberName}</p>
+                                                        <p className="text-white/90 mt-1 font-medium">
+                                                            {memberGroup.lendings[0]?.bookTitle || '-'}
+                                                        </p>
                                                     </div>
-                                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${lending.status_pengembalian
-                                                        ? 'bg-emerald-100 text-emerald-800'
-                                                        : moment().isAfter(moment(lending.tgl_pengembalian))
-                                                            ? 'bg-red-100 text-red-800'
-                                                            : 'bg-blue-100 text-blue-800'
-                                                        }`}>
-                                                        {lending.status_pengembalian
-                                                            ? 'Returned'
-                                                            : moment().isAfter(moment(lending.tgl_pengembalian))
-                                                                ? 'Late'
-                                                                : 'Active'
-                                                        }
-                                                    </span>
                                                 </div>
                                                 <div className="absolute bottom-0 right-0 transform translate-y-1/2">
                                                     <svg className="w-24 h-24 text-white/10" viewBox="0 0 24 24" fill="currentColor">
@@ -246,10 +270,10 @@ const MemberHistory = () => {
                                             {/* Card Content - Updated to show member statistics */}
                                             <div className="p-6">
                                                 <div className="mb-6">
-                                                    <h3 className="text-lg font-semibold text-gray-900">{lending.bookTitle}</h3>
+                                                    <h3 className="text-lg font-semibold text-gray-900">{memberGroup.lendings.bookTitle}</h3>
 
                                                     {/* Member Statistics */}
-                                                    <div className="mt-6 grid grid-cols-3 gap-4">
+                                                    <div className="mt-6 grid grid-cols-4 gap-4">
                                                         <div className="text-center p-3 bg-red-50 rounded-lg">
                                                             <p className="text-sm text-red-600 font-medium text-xs">Fines Applied</p>
                                                             <p className="text-2xl font-bold text-red-700">{memberStats.totalFines}</p>
@@ -262,6 +286,10 @@ const MemberHistory = () => {
                                                             <p className="text-sm text-blue-600 font-medium text-xs">Active</p>
                                                             <p className="text-2xl font-bold text-blue-700">{memberStats.active}</p>
                                                         </div>
+                                                        <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                                                            <p className="text-sm text-yellow-600 font-medium text-xs">Books Borrowed</p>
+                                                            <p className="text-2xl font-bold text-yellow-700">{memberGroup.lendings.length}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -271,9 +299,9 @@ const MemberHistory = () => {
                                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                             </svg>
-                                                            Member ID: {lending.id_member}
+                                                            Member ID: {memberGroup.lendings.id_member}
                                                         </div>
-                                                        <span className="text-blue-600 hover:text-blue-800 cursor-pointer" onClick={() => handleShowDetails(lending)}>
+                                                        <span className="text-blue-600 hover:text-blue-800 cursor-pointer" onClick={() => handleShowDetails(memberGroup)}>
                                                             View Details →
                                                         </span>
                                                     </div>
@@ -312,8 +340,8 @@ const MemberHistory = () => {
                                     {/* Pagination info and controls */}
                                     <div className="flex items-center gap-4">
                                         <div className="text-sm text-gray-700">
-                                            Showing {filteredData.length > 0 ? indexOfFirstItem + 1 : 0} 
-                                            to {Math.min(indexOfLastItem, filteredData.length)} 
+                                            Showing {filteredData.length > 0 ? indexOfFirstItem + 1 : 0}
+                                            to {Math.min(indexOfLastItem, filteredData.length)}
                                             of {filteredData.length} entries
                                         </div>
 
@@ -354,11 +382,10 @@ const MemberHistory = () => {
                                                             <button
                                                                 key={pageNum}
                                                                 onClick={() => handlePageChange(pageNum)}
-                                                                className={`px-3 py-1 text-sm rounded-lg ${
-                                                                    currentPage === pageNum
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'text-gray-600 hover:bg-gray-100'
-                                                                }`}
+                                                                className={`px-3 py-1 text-sm rounded-lg ${currentPage === pageNum
+                                                                    ? 'bg-blue-600 text-white'
+                                                                    : 'text-gray-600 hover:bg-gray-100'
+                                                                    }`}
                                                             >
                                                                 {pageNum}
                                                             </button>
@@ -431,20 +458,16 @@ const MemberHistory = () => {
                         {/* Main Info Grid */}
                         <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
                             <div>
-                                <p className="text-sm text-gray-500">Book Title</p>
-                                <p className="font-medium text-gray-900">{selectedLending.bookTitle}</p>
-                            </div>
-                            <div>
                                 <p className="text-sm text-gray-500">Member Name</p>
                                 <p className="font-medium text-gray-900">{selectedLending.memberName}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Member Phone</p>
-                                <p className="font-medium text-gray-900">{selectedLending.memberPhone}</p>
+                                <p className="text-sm text-gray-500">Member ID</p>
+                                <p className="font-medium text-gray-900">{selectedLending.memberNumberID}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500">Member ID</p>
-                                <p className="font-medium text-gray-900">#{selectedLending.id_member}</p>
+                                <p className="font-medium text-gray-900">#{selectedLending.memberID}</p>
                             </div>
                         </div>
 
@@ -469,7 +492,8 @@ const MemberHistory = () => {
                                     </p>
                                 </div>
                             )}
-                        </div>                        {/* Member's Borrowing History */}
+                        </div>                  
+                              {/* Member's Borrowing History */}
                         <div className="space-y-3">
                             <h3 className="font-semibold text-gray-900">Member's Borrowing History</h3>
                             <div className="border border-gray-100 rounded-lg">
@@ -508,10 +532,24 @@ const MemberHistory = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center p-3 border-t border-gray-100 bg-gray-50 rounded-b-lg">
-                                    <span className="font-medium text-gray-700">Total Books Borrowed</span>
+                                    <span className="font-medium text-gray-700">Total Lending History</span>
                                     <span className="font-semibold text-blue-600">
-                                        {selectedLending.borrowHistory.length}
+                                        {selectedLending.borrowHistory.length} Books
                                     </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Books Borrowed Overview */}
+                        <div className="space-y-3">
+                            <h3 className="font-semibold text-gray-900">Books Borrowed Overview</h3>
+                            <div className="border border-gray-100 rounded-lg">
+                                <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                    <ul className="list-disc list-inside max-h-40 overflow-y-auto">
+                                        {uniqueBookTitles.map((title, i) => (
+                                            <li key={i} className="text-gray-700">{title}</li>
+                                        ))}
+                                    </ul>
                                 </div>
                             </div>
                         </div>

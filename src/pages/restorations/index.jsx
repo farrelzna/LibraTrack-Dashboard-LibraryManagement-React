@@ -478,6 +478,13 @@ const Restorations = () => {
                                 </svg>
                                 Provide clear description for record keeping
                             </li>
+                            <li className="flex items-center text-gray-700">
+                                <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1M12 20v1M3 12h1M20 12h1" />
+                                </svg>
+                                "Undefined" Data not available (deleted)
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -488,13 +495,33 @@ const Restorations = () => {
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex justify-between">
                         <h2 className="text-lg font-semibold text-gray-800">Fine List</h2>
-                        <div>
-                            <button
-                                onClick={handleClearSearch}
-                                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
-                            >
-                                Clear Search
-                            </button>
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={handleSearch}
+                                        placeholder="Search by Book ID, Book Title, Member ID, Member Name, or Date..."
+                                        className="w-full p-3 pl-10 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                    <div className="absolute left-3 top-4 text-gray-400">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            {searchQuery && (
+                                <button
+                                    onClick={handleClearSearch}
+                                    className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            )}
                         </div>
                     </div>
                     <div className="mt-4">

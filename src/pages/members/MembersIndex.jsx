@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { saveAs } from 'file-saver';
 import axios from "axios";
 import Swal from "sweetalert2";
-import Modal from "../../components/Modal"; // Make sure you have this component
+import Alert from '../../components/Alert';
+import Modal from "../../components/Modal";
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { API_URL } from "../../constant";
@@ -15,6 +16,11 @@ export default function MemberManagement() {
     nama: "",
     alamat: "",
     tgl_lahir: "",
+  });
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    type: 'info',
+    message: ''
   });
 
   const [error, setError] = useState({});
@@ -59,7 +65,7 @@ export default function MemberManagement() {
         headers: { Authorization: `Bearer ${getToken}` },
       })
       .then((res) => {
-        console.log("Response API:", res.data); // Debug
+        // console.log("Response API:", res.data); // Debug
         setMembers(res.data); // Fix struktur
       })
       .catch((err) => {
@@ -85,9 +91,12 @@ export default function MemberManagement() {
     })
       .then(() => {
         setIsModalOpen(false);
-        setSuccessMessage(
-          isEditMode ? "Successfully updated data" : "Successfully added data"
-        );
+        setAlertConfig({
+          type: 'success',
+          message: isEditMode ? "Member Successfully Updated" : "Failed to Update Member"
+        });
+        setShowAlert(true);
+
         setFormModal({
           no_ktp: "",
           nama: "",
@@ -100,9 +109,21 @@ export default function MemberManagement() {
       })
       .catch((err) => {
         if (err.response?.status === 401) {
-          navigate("/login");
+          setAlertConfig({
+            type: 'error',
+            message: "Sesi telah berakhir, silakan login kembali"
+          });
+          setShowAlert(true);
+          setTimeout(() => {
+            setShowAlert(false);
+            navigate("/login");
+          }, 2000);
         } else {
-          setError(err.response?.data || { message: "Something went wrong" });
+          setAlertConfig({
+            type: 'error',
+            message: err.response?.data?.message || "Terjadi kesalahan"
+          });
+          setShowAlert(true);
         }
       });
   };
@@ -126,13 +147,21 @@ export default function MemberManagement() {
         headers: { Authorization: `Bearer ${getToken}` },
       })
       .then(() => {
-        setSuccessMessage("Successfully deleted member data");
+        setAlertConfig({
+          type: 'success',
+          message: "Member Deleted Successfully"
+        });
+        setShowAlert(true);
         setIsDeleteModalOpen(false);
         setDeleteTargetId(null);
         fetchMembers();
       })
       .catch((err) => {
-        setError(err.response?.data || { message: "Failed to delete data" });
+        setAlertConfig({
+          type: 'error',
+          message: err.response?.data?.message || "Failed to Delete Member"
+        });
+        setShowAlert(true);
       });
   };
 
@@ -157,7 +186,7 @@ export default function MemberManagement() {
         setIsDetailModalOpen(true);
       })
       .catch((err) => {
-        setError(err.response?.data || { message: "Gagal memuat detail member" });
+        setError(err.response?.data || { message: "Failed to Load Number Details" });
       });
   };
 
@@ -309,7 +338,11 @@ export default function MemberManagement() {
       );
 
       if (response.data) {
-        setSuccessMessage("Member added successfully");
+        setAlertConfig({
+          type: 'success',
+          message: 'New Member added successfully'
+        });
+        setShowAlert(true);
         setIsModalOpen(false);
         setFormModal({
           no_ktp: "",
@@ -317,12 +350,14 @@ export default function MemberManagement() {
           alamat: "",
           tgl_lahir: "",
         });
-        fetchMembers(); // Refresh the members list
+        fetchMembers(); // Refresh daftar member
       }
     } catch (error) {
-      setError({
-        message: error.response?.data?.message || "Failed to create member"
+      setAlertConfig({
+        type: 'error',
+        message: error.response?.data?.message || 'Failed to Add Member'
       });
+      setShowAlert(true);
     } finally {
       setIsLoading(false);
     }
@@ -607,9 +642,27 @@ export default function MemberManagement() {
 
   return (
     <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
+      {showAlert && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          <Alert
+            type={alertConfig.type}
+            message={alertConfig.message}
+            onClose={() => setShowAlert(false)}
+          />
+        </div>
+      )}
+      {showAlert && (
+        <div className="fixed bottom-0 right-2/3 transform z-50">
+          <Alert
+            type={alertConfig.type}
+            message={alertConfig.message}
+            onClose={() => setShowAlert(false)}
+          />
+        </div>
+      )}
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Member's Management</h1>
+        <h1 className="text-3xl text-gray-800 tracking-tight">Member's Management</h1>
         <p className="mt-2 text-gray-600">Manage your library member account</p>
       </div>
 
@@ -669,7 +722,9 @@ export default function MemberManagement() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
               </button>
+            </div>
 
+            <div className="flex flex-wrap items-center gap-4">
               <select
                 value={filterStatus}
                 onChange={(e) => handleFilterStatusChange(e)}
@@ -731,6 +786,7 @@ export default function MemberManagement() {
                 </div>
               </div>
 
+
               {selectedRows.length > 0 && (
                 <button
                   onClick={handleBulkDelete}
@@ -751,7 +807,8 @@ export default function MemberManagement() {
                     tgl_lahir: "",
                   });
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center gap-2"
+                className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
+                style={{ width: '200px' }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -999,7 +1056,7 @@ export default function MemberManagement() {
                     </svg>
                     Processing...
                   </>
-                ) : isEditMode ? "Update Member" : "Create Member"}
+                ) : isEditMode ? "Update Members" : "Create Members"}
               </button>
             </div>
           </form>
