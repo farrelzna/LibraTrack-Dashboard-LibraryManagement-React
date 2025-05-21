@@ -72,7 +72,7 @@ export default function BooksIndex() {
                 headers: { Authorization: `Bearer ${getToken}` },
             })
             .then((res) => {
-                console.log("Response API:", res.data); // Debug
+                // console.log("Response API:", res.data); // Debug
                 setBooks(res.data); // Fix struktur
             })
             .catch((err) => {
@@ -407,7 +407,7 @@ export default function BooksIndex() {
                                     <div className="absolute inset-0 flex items-center justify-center p-4">
                                         <div className="text-center">
                                             <div className="font-bold text-gray-800 mb-2 line-clamp-2">{book.judul}</div>
-                                            <div className="text-sm text-gray-600">{book.pengarang}</div>
+                                            <div className="text-xs text-gray-600">{book.pengarang}</div>
                                         </div>
                                     </div>
                                     {/* Book spine effect */}
@@ -418,24 +418,24 @@ export default function BooksIndex() {
                             {/* Book Information */}
                             <div className="p-4 flex-1 flex flex-col">
                                 <div className="flex items-center justify-between mb-4">
-                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                                         Rack: {book.no_rak}
                                     </span>
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                                         Stock: {book.stok}
                                     </span>
                                 </div>
 
                                 <div className="space-y-2 flex-1">
                                     <h3 className="font-semibold text-gray-800 line-clamp-2">{book.judul}</h3>
-                                    <p className="text-sm text-gray-600">By {book.pengarang}</p>
-                                    <div className="flex items-center text-sm text-gray-500">
+                                    <p className="text-xs text-gray-600">By {book.pengarang}</p>
+                                    <div className="flex items-center text-xs text-gray-500">
                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
                                         {book.penerbit}
                                     </div>
-                                    <div className="flex items-center text-sm text-gray-500">
+                                    <div className="flex items-center text-xs text-gray-500">
                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -447,7 +447,7 @@ export default function BooksIndex() {
                                 <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-2">
                                     <button
                                         onClick={() => handleDetail(book.id)}
-                                        className="flex items-center justify-center px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                        className="flex items-center justify-center px-3 py-1.5 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                                     >
                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -457,7 +457,7 @@ export default function BooksIndex() {
                                     </button>
                                     <button
                                         onClick={() => handleEdit(book.id)}
-                                        className="flex items-center justify-center px-3 py-1.5 text-sm bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors"
+                                        className="flex items-center justify-center px-3 py-1.5 text-xs bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors"
                                     >
                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -466,7 +466,7 @@ export default function BooksIndex() {
                                     </button>
                                     <button
                                         onClick={() => handleDelete(book.id)}
-                                        className="flex items-center justify-center px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                        className="flex items-center justify-center px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                                     >
                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -578,25 +578,25 @@ export default function BooksIndex() {
                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                     {book.no_rak}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                     {book.judul}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                     {book.pengarang}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                     {book.penerbit}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                     {book.tahun_terbit}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                     {book.stok}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                                     <div className="flex space-x-2">
                                         <button
                                             onClick={() => handleDetail(book.id)}
@@ -714,8 +714,8 @@ export default function BooksIndex() {
             )}
             {/* Header Section */}
             <div className="mb-8">
-                <h1 className="text-3xl text-gray-800 tracking-tight">Book's Management</h1>
-                <p className="mt-2 text-gray-600">Manage your library's book collection</p>
+                <h1 className="text-2xl text-gray-800 tracking-tight">Book's Management</h1>
+                <p className="mt-2 text-xs text-gray-600">Manage your library's book collection</p>
             </div>
 
             {/* Stats Section */}
@@ -723,33 +723,33 @@ export default function BooksIndex() {
                 <div className="bg-white rounded-xl shadow-sm p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Total Books</p>
-                            <h3 className="text-2xl font-bold text-gray-800">{calculateStats().total}</h3>
+                            <p className="text-xs text-gray-600">Total Books</p>
+                            <h3 className="text-xl font-bold text-gray-800">{calculateStats().total}</h3>
                         </div>
                         <div className="p-3 bg-blue-100 rounded-full">
-                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
                         </div>
                     </div>
-                    <p className="text-sm text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
+                    <p className="text-xs text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
                 </div>
             </div>
 
             {/* Action Bar */}
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex-1 min-w-[260px] max-w-md">
+                    <div className="flex-1 min-w-[60px] max-w-md">
                         <div className="relative">
                             <input
                                 type="text"
                                 placeholder="Search books..."
                                 value={searchTerm}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                             />
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
@@ -761,7 +761,7 @@ export default function BooksIndex() {
                             onClick={() => handleViewChange('table')}
                             className={`p-2 rounded-lg ${view === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
                         </button>
@@ -769,20 +769,20 @@ export default function BooksIndex() {
                             onClick={() => handleViewChange('grid')}
                             className={`p-2 rounded-lg ${view === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                             </svg>
                         </button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4">
-                        <select className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <select className="px-3 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                             <option value="">All Categories</option>
                             <option value="fiction">Fiction</option>
                             <option value="non-fiction">Non-Fiction</option>
                         </select>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center text-xs gap-2">
                             <input
                                 type="date"
                                 value={dateRange.start}
@@ -803,21 +803,21 @@ export default function BooksIndex() {
                                 onClick={() => setShowExportDropdown(!showExportDropdown)}
                                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <span>Export</span>
+                                <span className="text-xs">Export</span>
                             </button>
                             <div className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'}`}>
                                 <button
                                     onClick={() => handleExportData('csv')}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                    className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
                                 >
                                     Export as CSV
                                 </button>
                                 <button
                                     onClick={() => handleExportData('excel')}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                    className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
                                 >
                                     Export as Excel
                                 </button>
@@ -828,7 +828,7 @@ export default function BooksIndex() {
                         {selectedRows.length > 0 && (
                             <button
                                 onClick={handleBulkDelete}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                className="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-700"
                             >
                                 Delete Selected ({selectedRows.length})
                             </button>
@@ -837,10 +837,10 @@ export default function BooksIndex() {
                         {/* Add New Book */}
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
-                            style={{ width: '200px' }}
+                            className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-xs text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
+                            style={{ width: '150px' }}
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                             Add New Book
@@ -875,22 +875,22 @@ export default function BooksIndex() {
             <div className="mt-6 border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-700">Show</span>
+                        <span className="text-xs text-gray-700">Show</span>
                         <select
                             value={pageSize}
                             onChange={handlePageSizeChange}
-                            className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                         >
                             <option value="10">10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                             <option value="100">100</option>
                         </select>
-                        <span className="text-sm text-gray-700">Entries</span>
+                        <span className="text-xs text-gray-700">Entries</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="text-sm text-gray-700">
+                        <div className="text-xs text-gray-700">
                             Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredBooks.length)} of {filteredBooks.length} entries
                         </div>
                         
@@ -898,18 +898,18 @@ export default function BooksIndex() {
                             <button
                                 onClick={() => handlePageChange(1)}
                                 disabled={currentPage === 1}
-                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                                 </svg>
                             </button>
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
@@ -922,7 +922,7 @@ export default function BooksIndex() {
                                         <button
                                             key={pageNumber}
                                             onClick={() => handlePageChange(pageNumber)}
-                                            className={`px-3 py-1 text-sm rounded-lg ${
+                                            className={`px-3 py-1 text-xs rounded-lg ${
                                                 currentPage === pageNumber
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-white border border-gray-300 hover:bg-gray-50'
@@ -940,18 +940,18 @@ export default function BooksIndex() {
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
-                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
                             <button
                                 onClick={() => handlePageChange(Math.ceil(filteredBooks.length / pageSize))}
                                 disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
-                                className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                                 </svg>
                             </button>
@@ -969,7 +969,7 @@ export default function BooksIndex() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Rack Number</label>
+                            <label className="block text-xs font-medium text-gray-700">Rack Number</label>
                             <input
                                 type="text"
                                 name="no_rak"
@@ -980,7 +980,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Title</label>
+                            <label className="block text-xs font-medium text-gray-700">Title</label>
                             <input
                                 type="text"
                                 name="judul"
@@ -991,7 +991,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Author</label>
+                            <label className="block text-xs font-medium text-gray-700">Author</label>
                             <input
                                 type="text"
                                 name="pengarang"
@@ -1002,7 +1002,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Year Published</label>
+                            <label className="block text-xs font-medium text-gray-700">Year Published</label>
                             <input
                                 type="number"
                                 name="tahun_terbit"
@@ -1013,7 +1013,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Published</label>
+                            <label className="block text-xs font-medium text-gray-700">Published</label>
                             <input
                                 type="text"
                                 name="penerbit"
@@ -1024,7 +1024,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Stock</label>
+                            <label className="block text-xs font-medium text-gray-700">Stock</label>
                             <input
                                 type="number"
                                 name="stok"
@@ -1035,7 +1035,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-700">Detail</label>
+                            <label className="block text-xs font-medium text-gray-700">Detail</label>
                             <textarea
                                 name="detail"
                                 value={form.detail}
@@ -1050,13 +1050,13 @@ export default function BooksIndex() {
                         <button
                             type="button"
                             onClick={() => setShowAddModal(false)}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                            className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                            className="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
                         >
                             Create Books
                         </button>
@@ -1074,38 +1074,38 @@ export default function BooksIndex() {
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Rack Number</p>
+                                <p className="text-xs text-gray-500">Rack Number</p>
                                 <p className="font-medium">{selectedBook.no_rak}</p>
                             </div>
                             <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Title</p>
+                                <p className="text-xs text-gray-500">Title</p>
                                 <p className="font-medium">{selectedBook.judul}</p>
                             </div>
                             <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Author</p>
+                                <p className="text-xs text-gray-500">Author</p>
                                 <p className="font-medium">{selectedBook.pengarang}</p>
                             </div>
                             <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Year Published</p>
+                                <p className="text-xs text-gray-500">Year Published</p>
                                 <p className="font-medium">{selectedBook.tahun_terbit}</p>
                             </div>
                             <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Publisher</p>
+                                <p className="text-xs text-gray-500">Publisher</p>
                                 <p className="font-medium">{selectedBook.penerbit}</p>
                             </div>
                             <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Stock</p>
+                                <p className="text-xs text-gray-500">Stock</p>
                                 <p className="font-medium">{selectedBook.stok}</p>
                             </div>
                         </div>
                             <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-500">Detail</p>
+                                <p className="text-xs text-gray-500">Detail</p>
                                 <p className="font-medium">{selectedBook.detail}</p>
                             </div>
                         <div className="flex justify-end">
                             <button
                                 onClick={() => setShowDetailModal(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                                className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                             >
                                 Close   
                             </button>
@@ -1124,7 +1124,7 @@ export default function BooksIndex() {
                     <form onSubmit={handleEditSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Rack Number</label>
+                                <label className="block text-xs font-medium text-gray-700">Rack Number</label>
                                 <input
                                     type="text"
                                     name="no_rak"
@@ -1135,7 +1135,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Title</label>
+                                <label className="block text-xs font-medium text-gray-700">Title</label>
                                 <input
                                     type="text"
                                     name="judul"
@@ -1146,7 +1146,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Author</label>
+                                <label className="block text-xs font-medium text-gray-700">Author</label>
                                 <input
                                     type="text"
                                     name="pengarang"
@@ -1157,7 +1157,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">TYear Published</label>
+                                <label className="block text-xs font-medium text-gray-700">TYear Published</label>
                                 <input
                                     type="number"
                                     name="tahun_terbit"
@@ -1168,7 +1168,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Publisher</label>
+                                <label className="block text-xs font-medium text-gray-700">Publisher</label>
                                 <input
                                     type="text"
                                     name="penerbit"
@@ -1179,7 +1179,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Stock</label>
+                                <label className="block text-xs font-medium text-gray-700">Stock</label>
                                 <input
                                     type="number"
                                     name="stok"
@@ -1190,7 +1190,7 @@ export default function BooksIndex() {
                                 />
                             </div>
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700">Detail</label>
+                                <label className="block text-xs font-medium text-gray-700">Detail</label>
                                 <textarea
                                     name="detail"
                                     value={editForm.detail}
@@ -1205,13 +1205,13 @@ export default function BooksIndex() {
                             <button
                                 type="button"
                                 onClick={() => setShowEditModal(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                                className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                                className="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
                             >
                                 Update Books
                             </button>
@@ -1234,19 +1234,19 @@ export default function BooksIndex() {
                             </p>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h3 className="font-medium text-gray-800">{selectedBook.judul}</h3>
-                                <p className="text-sm text-gray-600">Author: {selectedBook.pengarang}</p>
+                                <p className="text-xs text-gray-600">Author: {selectedBook.pengarang}</p>
                             </div>
                             <div className="flex justify-end space-x-2 mt-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowDeleteModal(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                                    className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={confirmDelete}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+                                    className="px-4 py-2 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
                                 >
                                     Delete
                                 </button>

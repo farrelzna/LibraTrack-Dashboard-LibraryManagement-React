@@ -169,7 +169,7 @@ const Lendings = () => {
 
     // Function to handle book lending
     const handlePeminjaman = async () => {
-        const getToken = localStorage.getItem('token');
+        // const getToken = localStorage.getItem('token');
 
         // Validate required fields
         if (!form.id_buku || !form.id_member || !form.tgl_pinjam || !form.tgl_pengembalian) {
@@ -418,23 +418,23 @@ const Lendings = () => {
         <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
             {/* Header Section */}
             <div className="mb-8">
-                <h1 className="text-3xl  text-gray-800">Book Lending</h1>
-                <p className="mt-2 text-gray-600">Manage library book lending</p>
+                <h1 className="text-2xl text-gray-800">Book's Lending</h1>
+                <p className="mt-2 text-xs text-gray-600">Manage library book lending</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {/* Form Section */}
                 <div className="bg-white rounded-xl shadow-sm">
                     <div className="p-6">
-                        <h2 className="text-lg font-semibold text-gray-800 mb-4">Lending Form</h2>
+                        <h2 className="text-sm font-semibold text-gray-800 mb-4">Lending Form</h2>
                         <form className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Book</label>
+                                <label className="block text-xs font-medium text-gray-700">Book</label>
                                 <select
                                     name="id_buku"
                                     value={form.id_buku}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                    className="mt-1 block w-full text-xs p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">Select a Book</option>
                                     {books.map((book) => (
@@ -443,13 +443,14 @@ const Lendings = () => {
                                         </option>
                                     ))}
                                 </select>
-                            </div>                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Member</label>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700">Member</label>
                                 <select
                                     name="id_member"
                                     value={form.id_member}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                    className="mt-1 block w-full text-xs p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">Select a Member</option>
                                     {members.map((member) => (
@@ -460,29 +461,29 @@ const Lendings = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Borrow Date</label>
+                                <label className="block text-xs font-medium text-gray-700">Borrow Date</label>
                                 <input
                                     type="date"
                                     name="tgl_pinjam"
                                     value={form.tgl_pinjam}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                    className="mt-1 block w-full text-xs p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Return Date</label>
+                                <label className="block text-xs font-medium text-gray-700">Return Date</label>
                                 <input
                                     type="date"
                                     name="tgl_pengembalian"
                                     value={form.tgl_pengembalian}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                    className="mt-1 block w-full text-xs p-2 rounded-md bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
                             <button
                                 type="button"
                                 onClick={handlePeminjaman}
-                                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors justify-center"
+                                className="w-full px-4 py-2 text-xs bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors justify-center"
                             >
                                 Borrow Books
                             </button>
@@ -493,28 +494,28 @@ const Lendings = () => {
                 {/* Guidelines Section */}
                 <div className="bg-white rounded-xl shadow-sm">
                     <div className="p-6">
-                        <h2 className="text-lg font-semibold text-gray-800 mb-4">Guidelines</h2>
+                        <h2 className="text-sm font-semibold text-gray-800 mb-4">Guidelines</h2>
                         <ul className="space-y-3">
-                            <li className="flex items-center text-gray-700">
-                                <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 Ensure Book ID and Member ID are valid
                             </li>
-                            <li className="flex items-center text-gray-700">
-                                <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                                 Return date must be at least 3 days from borrow date
                             </li>
-                            <li className="flex items-center text-gray-700">
-                                <svg className="w-5 h-5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                                 Late returns will incur a fine
                             </li>
-                            <li className="flex items-center text-gray-700">
-                                <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1M12 20v1M3 12h1M20 12h1" />
                                 </svg>
@@ -528,7 +529,7 @@ const Lendings = () => {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div>
-                        <h2 className="text-lg font-semibold text-gray-800">Lending List</h2>
+                        <h2 className="text-sm font-semibold text-gray-800">Lending List</h2>
                     </div>
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -538,10 +539,10 @@ const Lendings = () => {
                                     value={searchQuery}
                                     onChange={handleSearch}
                                     placeholder="Search by Book ID, Book Title, Member ID, Member Name, or Date..."
-                                    className="w-full p-3 pl-10 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full p-3 pl-10 text-xs rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                                 <div className="absolute left-3 top-4 text-gray-400">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -552,7 +553,7 @@ const Lendings = () => {
                                 onClick={handleClearSearch}
                                 className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -606,7 +607,7 @@ const Lendings = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {paginatedData.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                                    <td colSpan="7" className="px-6 py-4 text-center text-xs text-gray-500">
                                         No data available
                                     </td>
                                 </tr>
@@ -627,20 +628,20 @@ const Lendings = () => {
 
                                     return (
                                         <tr key={item.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                                 {books.find(book => book.id === item.id_buku)?.judul || 'Undefined'} - ID : {item.id_buku}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                                 {members.find(member => member.id === item.id_member)?.nama || 'Undefined'} - ID : {item.id_member}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{moment(item.tgl_pinjam).format('DD/MM/YYYY')}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{moment(item.tgl_pengembalian).format('DD/MM/YYYY')}</td>
-                                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${statusClass}`}>{statusText}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">{moment(item.tgl_pinjam).format('DD/MM/YYYY')}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">{moment(item.tgl_pengembalian).format('DD/MM/YYYY')}</td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-xs font-medium ${statusClass}`}>{statusText}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-xs font-medium space-x-2">
                                                 <button
                                                     onClick={() => handlePengembalian(item)}
                                                     disabled={item.status_pengembalian}
-                                                    className={`inline-flex items-center px-3 py-1.5 text-sm ${item.status_pengembalian
+                                                    className={`inline-flex items-center px-3 py-1.5 text-xs ${item.status_pengembalian
                                                         ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
                                                         : 'bg-green-50 text-green-600 hover:bg-green-100'
                                                         } rounded-lg transition-colors`}
@@ -652,7 +653,7 @@ const Lendings = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => handleShowDetail(item.id)}
-                                                    className="inline-flex items-center px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                                    className="inline-flex items-center px-3 py-1.5 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                                                 >
                                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -671,7 +672,7 @@ const Lendings = () => {
                 <div className="px-6 py-4 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-700">Show</span>
+                            <span className="text-xs text-gray-700">Show</span>
                             <select
                                 value={pageSize}
                                 onChange={(e) => {
@@ -693,18 +694,18 @@ const Lendings = () => {
                                         title: `Showing ${newSize} entries per page`
                                     });
                                 }}
-                                className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                className="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="10">10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
                                 <option value="100">100</option>
                             </select>
-                            <span className="text-sm text-gray-700">entries</span>
+                            <span className="text-xs text-gray-700">entries</span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <div className="text-sm text-gray-700">
+                            <div className="text-xs text-gray-700">
                                 Showing {filteredData.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0} to {Math.min(currentPage * pageSize, filteredData.length)} of {filteredData.length} entries
                             </div>
 
@@ -712,18 +713,18 @@ const Lendings = () => {
                                 <button
                                     onClick={() => setCurrentPage(1)}
                                     disabled={currentPage === 1}
-                                    className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                                     </svg>
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
-                                    className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                                     </svg>
                                 </button>
@@ -736,7 +737,7 @@ const Lendings = () => {
                                             <button
                                                 key={pageNumber}
                                                 onClick={() => setCurrentPage(pageNumber)}
-                                                className={`px-3 py-1 text-sm rounded-lg ${currentPage === pageNumber
+                                                className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-white border border-gray-300 hover:bg-gray-50'
                                                     }`}
@@ -753,18 +754,18 @@ const Lendings = () => {
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                     disabled={currentPage >= totalPages}
-                                    className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                                     </svg>
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(totalPages)}
                                     disabled={currentPage >= totalPages}
-                                    className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                                     </svg>
                                 </button>
@@ -783,25 +784,25 @@ const Lendings = () => {
                     <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
                             <div>
-                                <p className="text-sm text-gray-500">Member ID</p>
+                                <p className="text-xs text-gray-500">Member ID</p>
                                 <p className="font-medium">{detailPeminjaman.id_member}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Book ID</p>
+                                <p className="text-xs text-gray-500">Book ID</p>
                                 <p className="font-medium">{detailPeminjaman.id_buku}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Borrowing Date</p>
+                                <p className="text-xs text-gray-500">Borrowing Date</p>
                                 <p className="font-medium">{detailPeminjaman.tgl_pinjam}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Return Date</p>
+                                <p className="text-xs text-gray-500">Return Date</p>
                                 <p className="font-medium">{detailPeminjaman.tgl_pengembalian}</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
                             <div>
-                                <p className="text-sm text-gray-500">Status</p>
+                                <p className="text-xs text-gray-500">Status</p>
                                 <p className="font-medium">
                                     {detailPeminjaman.status_pengembalian
                                         ? 'Returned'

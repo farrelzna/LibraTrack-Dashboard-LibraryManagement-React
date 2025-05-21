@@ -116,7 +116,6 @@ export default function Login() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
             <div className="w-full max-w-5xl bg-white rounded-lg shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
                 <div className="grid grid-cols-1 md:grid-cols-2">
-                    {/* Library Image Section */}
                     <div className="relative hidden md:block h-full min-h-[600px]">
                         <img
                             src="/src/assets/image.png"
@@ -130,7 +129,6 @@ export default function Login() {
                         </div>
                     </div>
 
-                    {/* Login Form Section */}
                     <div className="p-8 lg:p-12 bg-white">
                         <h2 className="text-3xl font-bold text-center text-gray-800 mb-2 animate-fade-in-down">Login</h2>
                         <p className="text-center text-gray-600 mb-8 animate-fade-in-up">Sign in to your library account</p>

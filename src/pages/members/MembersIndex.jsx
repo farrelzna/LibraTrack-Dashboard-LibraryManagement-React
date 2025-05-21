@@ -374,7 +374,7 @@ export default function MemberManagement() {
 
               <div className="p-6 relative">
                 <div>
-                  <h3 className="text-lg font-semibold text-white absolute top-5 right-4 leading-tight">{member.nama}</h3>
+                  <h3 className="text-sm font-semibold text-white absolute top-5 right-4 leading-tight">{member.nama}</h3>
                 </div>
                 {/* Profile Icon */}
                 <div className="relative z-10 flex flex-col mb-4">
@@ -398,7 +398,7 @@ export default function MemberManagement() {
                       className="rounded-2xl border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </div>
-                  <div className="my-4 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                  <div className="my-4 px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
                     ID: {member.no_ktp}
                   </div>
                 </div>
@@ -406,17 +406,17 @@ export default function MemberManagement() {
                 {/* Member Details */}
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2 text-gray-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-sm">{member.alamat}</span>
+                    <span className="text-xs">{member.alamat}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-sm">{member.tgl_lahir}</span>
+                    <span className="text-xs">{member.tgl_lahir}</span>
                   </div>
                 </div>
                 {/* Action Buttons */}
@@ -424,7 +424,7 @@ export default function MemberManagement() {
                   <div className="flex justify-between items-center">
                     <button
                       onClick={() => handleDetail(member.id)}
-                      className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center"
+                      className="px-3 py-1.5 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -434,7 +434,7 @@ export default function MemberManagement() {
                     </button>
                     <button
                       onClick={() => handleEdit(member)}
-                      className="px-3 py-1.5 text-sm bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors inline-flex items-center"
+                      className="px-3 py-1.5 text-xs bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors inline-flex items-center"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -443,7 +443,7 @@ export default function MemberManagement() {
                     </button>
                     <button
                       onClick={() => handleDelete(member.id)}
-                      className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors inline-flex items-center"
+                      className="px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors inline-flex items-center"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -538,35 +538,35 @@ export default function MemberManagement() {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                   {member.no_ktp}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                   {member.nama}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                   {member.alamat}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                   {member.tgl_lahir}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleDetail(member.id)}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-600 hover:text-blue-900 transition-colors"
                     >
                       View
                     </button>
                     <button
                       onClick={() => handleEdit(member)}
-                      className="text-yellow-600 hover:text-yellow-900"
+                      className="text-yellow-600 hover:text-yellow-900 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(member.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-600 hover:text-red-900 transition-colors"
                     >
                       Delete
                     </button>
@@ -662,8 +662,8 @@ export default function MemberManagement() {
       )}
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-800 tracking-tight">Member's Management</h1>
-        <p className="mt-2 text-gray-600">Manage your library member account</p>
+        <h1 className="text-2xl text-gray-800 tracking-tight">Member's Management</h1>
+        <p className="mt-2 text-xs text-gray-600">Manage your library member account</p>
       </div>
 
       <div className="mx-auto">
@@ -672,33 +672,33 @@ export default function MemberManagement() {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Members</p>
-                <h3 className="text-2xl font-bold text-gray-800">{calculateStats().total}</h3>
+                <p className="text-xs text-gray-600">Total Members</p>
+                <h3 className="text-xl font-bold text-gray-800">{calculateStats().total}</h3>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
             </div>
-            <p className="text-sm text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
+            <p className="text-xs text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
           </div>
         </div>
 
         {/* Action Bar */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex-1 min-w-[260px] max-w-md">
+            <div className="flex-1 min-w-[60px] max-w-md">
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search members..."
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -710,7 +710,7 @@ export default function MemberManagement() {
                 onClick={() => handleViewChange('table')}
                 className={`p-2 rounded-lg ${view === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                 </svg>
               </button>
@@ -718,13 +718,13 @@ export default function MemberManagement() {
                 onClick={() => handleViewChange('grid')}
                 className={`p-2 rounded-lg ${view === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center text-xs gap-2">
               <select
                 value={filterStatus}
                 onChange={(e) => handleFilterStatusChange(e)}
@@ -747,7 +747,7 @@ export default function MemberManagement() {
                   type="date"
                   value={dateRange.end}
                   onChange={(e) => handleDateRangeChange('end', e.target.value)}
-                  className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -756,10 +756,10 @@ export default function MemberManagement() {
                   onClick={() => setShowExportDropdown(!showExportDropdown)}
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span>Export</span>
+                  <span className="text-xs">Export</span>
                 </button>
                 <div
                   className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'
@@ -770,7 +770,7 @@ export default function MemberManagement() {
                       handleExportData('csv');
                       setShowExportDropdown(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
                   >
                     Export as CSV
                   </button>
@@ -779,7 +779,7 @@ export default function MemberManagement() {
                       handleExportData('excel');
                       setShowExportDropdown(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
                   >
                     Export as Excel
                   </button>
@@ -790,7 +790,7 @@ export default function MemberManagement() {
               {selectedRows.length > 0 && (
                 <button
                   onClick={handleBulkDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
+                  className="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
                 >
                   Delete Selected ({selectedRows.length})
                 </button>
@@ -807,10 +807,10 @@ export default function MemberManagement() {
                     tgl_lahir: "",
                   });
                 }}
-                className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
-                style={{ width: '200px' }}
+                className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
+                style={{ width: '150px' }}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Add New Member
@@ -845,22 +845,22 @@ export default function MemberManagement() {
         <div className="mt-6 border-t border-gray-200 pt-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Show</span>
+              <span className="text-xs text-gray-700">Show</span>
               <select
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
               </select>
-              <span className="text-sm text-gray-700">entries</span>
+              <span className="text-xs text-gray-700">Entries</span>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="text-sm text-gray-700">
+              <div className="text-xs text-gray-700">
                 Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredMembers.length)} of {filteredMembers.length} entries
               </div>
 
@@ -868,18 +868,18 @@ export default function MemberManagement() {
                 <button
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                   </svg>
                 </button>
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
@@ -892,7 +892,7 @@ export default function MemberManagement() {
                       <button
                         key={pageNumber}
                         onClick={() => setCurrentPage(pageNumber)}
-                        className={`px-3 py-1 text-sm rounded-lg ${currentPage === pageNumber
+                        className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
                           ? 'bg-blue-600 text-white'
                           : 'bg-white border border-gray-300 hover:bg-gray-50'
                           }`}
@@ -909,18 +909,18 @@ export default function MemberManagement() {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredMembers.length / pageSize)))}
                   disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
-                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
                 <button
                   onClick={() => setCurrentPage(Math.ceil(filteredMembers.length / pageSize))}
                   disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
-                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -935,26 +935,26 @@ export default function MemberManagement() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-sm text-gray-500">Id Number</p>
+                  <p className="text-xs text-gray-500">Id Number</p>
                   <p className="font-medium">{selectedMember.no_ktp}</p>
                 </div>
                 <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-sm text-gray-500">Name</p>
+                  <p className="text-xs text-gray-500">Name</p>
                   <p className="font-medium">{selectedMember.nama}</p>
                 </div>
                 <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-sm text-gray-500">Address</p>
+                  <p className="text-xs text-gray-500">Address</p>
                   <p className="font-medium">{selectedMember.alamat}</p>
                 </div>
                 <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-sm text-gray-500">Birth Date</p>
+                  <p className="text-xs text-gray-500">Birth Date</p>
                   <p className="font-medium">{selectedMember.tgl_lahir}</p>
                 </div>
               </div>
               <div className="flex justify-end">
                 <button
                   onClick={() => setIsDetailModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                  className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                 >
                   Close
                 </button>
@@ -982,7 +982,7 @@ export default function MemberManagement() {
           <form onSubmit={isEditMode ? handleSubmitModal : handleCreateMember} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">ID Number</label>
+                <label className="block text-xs font-medium text-gray-700">ID Number</label>
                 <input
                   type="text"
                   name="no_ktp"
@@ -993,7 +993,7 @@ export default function MemberManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-xs font-medium text-gray-700">Name</label>
                 <input
                   type="text"
                   name="nama"
@@ -1004,7 +1004,7 @@ export default function MemberManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Address</label>
+                <label className="block text-xs font-medium text-gray-700">Address</label>
                 <input
                   type="text"
                   name="alamat"
@@ -1015,7 +1015,7 @@ export default function MemberManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Birth Date</label>
+                <label className="block text-xs font-medium text-gray-700">Birth Date</label>
                 <input
                   type="date"
                   name="tgl_lahir"
@@ -1039,14 +1039,14 @@ export default function MemberManagement() {
                     tgl_lahir: "",
                   });
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -1069,13 +1069,13 @@ export default function MemberManagement() {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+                className="px-4 py-2 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
               >
                 Delete
               </button>
