@@ -383,7 +383,7 @@ const Restorations = () => {
 
 
     return (
-        <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
+        <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
             {/* Header Section */}
             <div className="mb-8">
                 <h1 className="text-2xl text-gray-800">Fine's Management</h1>
@@ -392,7 +392,7 @@ const Restorations = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {/* Form Section */}
-                <div className="bg-white rounded-xl shadow-sm">
+                <div className="bg-white rounded-xl shadow">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Add Fine</h2>
                         <div className="space-y-4">
@@ -483,7 +483,7 @@ const Restorations = () => {
                 </div>
 
                 {/* Guidelines Section */}
-                <div className="bg-white rounded-xl shadow-sm">
+                <div className="bg-white rounded-xl shadow">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Guidelines</h2>
                         <ul className="space-y-3">
@@ -518,7 +518,7 @@ const Restorations = () => {
             </div>
 
             {/* Table Section */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div>
                         <h2 className="text-sm font-semibold text-gray-800">Fine List</h2>

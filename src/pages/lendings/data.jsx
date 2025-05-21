@@ -3,6 +3,7 @@ import axios from 'axios';
 import moment from 'moment';
 import Swal from 'sweetalert2';
 import Modal from '../../components/Modal';
+import jsPDF from 'jspdf';
 import { API_URL } from '../../constant';
 
 const MemberHistory = () => {
@@ -70,9 +71,6 @@ const MemberHistory = () => {
                         .map(l => {
                             const relatedBook = books.find(b => parseInt(b.id) === parseInt(l.id_buku));
 
-                            // if (!relatedBook) {
-                            //     console.warn(`Buku dengan ID ${l.id_buku} tidak ditemukan di books`, books);
-                            // }
 
                             const relatedFines = fines.filter(f =>
                                 f.id_member === l.id_member && f.id_buku === l.id_buku
@@ -83,6 +81,7 @@ const MemberHistory = () => {
                                 bookID: relatedBook?.id || 'Unknown Book ID',
                                 fines: relatedFines,
                                 totalFines: relatedFines.reduce((sum, fine) => sum + parseFloat(fine.jumlah_denda || 0), 0),
+                                status: l.status
                             };
                         });
                     // console.log('memberLendings:', memberLendings);
@@ -97,6 +96,7 @@ const MemberHistory = () => {
                         lendings: memberLendings,
                         fines: memberFines,
                         totalFines,
+                        // status: member.status
                     };
                 });
 
@@ -141,6 +141,82 @@ const MemberHistory = () => {
         setSelectedLending(null);
     };
 
+    const handleExportByMember = () => {
+        if (!selectedLending) return;
+
+        const doc = new jsPDF();
+        const currentDate = new Date().toLocaleDateString();
+
+        // Header
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Book Lending Report`, 105, 15, { align: "center" });
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Member Name   : ${selectedLending.memberName}`, 14, 25);
+        doc.text(`Member ID No. : ${selectedLending.memberNumberID}`, 14, 32);
+        doc.text(`Date          : ${currentDate}`, 14, 39);
+
+        let y = 47;
+
+        // Table Header
+        doc.setFont("helvetica", "bold");
+        doc.text("No", 14, y);
+        doc.text("Book Title", 24, y);
+        doc.text("Fine (Rp)", 145, y);
+        doc.text("Status", 170, y);
+        y += 6;
+        doc.setDrawColor(0);
+        doc.line(14, y, 196, y); // line under header
+        y += 4;
+
+        doc.setFont("helvetica", "normal");
+
+        if (selectedLending.lendings.length === 0) {
+            doc.text("No borrowings available.", 14, y);
+            y += 8;
+        } else {
+            selectedLending.lendings.forEach((lend, index) => {
+                const fineText = lend.totalFines > 0 ? `Rp${lend.totalFines.toFixed(0)}` : "-";
+
+                let status = "-";
+                if (lend.status === 'dikembalikan') status = "Returned";
+                else if (lend.status === 'belum dikembalikan') status = "Borrowed";
+                else if (lend.status === 'terlambat') status = "Overdue";
+
+                // Wrap long titles
+                const titleLines = doc.splitTextToSize(lend.bookTitle, 115);
+                doc.text(`${index + 1}`, 14, y);
+                doc.text(titleLines, 24, y);
+                doc.text(fineText, 145, y);
+                doc.text(status, 170, y);
+
+                y += (titleLines.length * 6) + 2;
+
+                // Add page if needed
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+        }
+
+        console.log('selectedLending:', selectedLending.lendings); // Log selectedLending detai
+        
+
+        y += 5;
+        doc.setDrawColor(150);
+        doc.line(14, y, 196, y);
+        y += 8;
+
+        // Total fine
+        doc.setFont("helvetica", "bold");
+        doc.text(`Total Fine: Rp${selectedLending.totalFines.toFixed(0)}`, 14, y);
+
+        doc.save(`report_${selectedLending.memberName.replace(/\s+/g, '_')}.pdf`);
+    };
+
     // const uniqueBookTitles = selectedLending && selectedLending.borrowHistory
     //     ? [...new Set(selectedLending.borrowHistory.map(borrow => borrow.bookTitle))]
     //     : [];
@@ -156,7 +232,7 @@ const MemberHistory = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <div className="mx-auto">
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-xs overflow-hidden">
                     <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-12">
                         <div className="relative z-10">
                             <h1 className="text-2xl font-bold text-white mb-2">Lending History</h1>
@@ -210,7 +286,7 @@ const MemberHistory = () => {
 
                                     return (
                                         <div key={index}
-                                            className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                                            className="group bg-white rounded-xl shadow hover:shadow-xl transition-all duration-300 ease-in overflow-hidden">
                                             {/* Card Header - Keep existing header */}
                                             <div className={`relative px-6 py-4 ${memberGroup.lendings[0]?.status_pengembalian
                                                 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
@@ -316,7 +392,7 @@ const MemberHistory = () => {
                                             <button
                                                 onClick={() => handlePageChange(1)}
                                                 disabled={currentPage === 1}
-                                                 className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -327,7 +403,7 @@ const MemberHistory = () => {
                                             <button
                                                 onClick={() => handlePageChange(currentPage - 1)}
                                                 disabled={currentPage === 1}
-                                               className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fillRule="evenodd" d="M12.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -372,7 +448,7 @@ const MemberHistory = () => {
                                             <button
                                                 onClick={() => handlePageChange(currentPage + 1)}
                                                 disabled={currentPage === totalPages}
-                                                 className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fillRule="evenodd" d="M7.293 15.707a1 1 0 001.414 0l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.414 1.414L11.586 10l-4.293 4.293a1 1 0 000 1.414z" clipRule="evenodd" />
@@ -435,6 +511,10 @@ const MemberHistory = () => {
                                 <p className="text-xs text-gray-500">Member ID</p>
                                 <p className="font-medium text-gray-900">#{selectedLending.memberID}</p>
                             </div>
+                            <div>
+                                <p className="text-xs text-gray-500">Export To</p>
+                                <a href="" onClick={handleExportByMember} className='text-red-400 hover:text-red-700 underline'>PDF</a>
+                            </div>
                         </div>
 
                         {/* Dates Section */}
@@ -474,12 +554,12 @@ const MemberHistory = () => {
                                                             {moment(borrow.tgl_pinjam).format('DD MMM YYYY')} - {moment(borrow.tgl_pengembalian).format('DD MMM YYYY')}
                                                         </p>
                                                     </div>
-                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${borrow.status_pengembalian
+                                                    <span className={`px-2 py-1 text-xs text-center font-medium rounded-full ${borrow.status_pengembalian
                                                         ? 'bg-emerald-100 text-emerald-800'
                                                         : moment().isAfter(moment(borrow.tgl_pengembalian))
                                                             ? 'bg-red-100 text-red-800'
                                                             : 'bg-blue-100 text-blue-800'
-                                                        }`}>
+                                                        }`} style={{ width:'70px' }}>
                                                         {borrow.status_pengembalian
                                                             ? 'Returned'
                                                             : moment().isAfter(moment(borrow.tgl_pengembalian))
@@ -530,7 +610,7 @@ const MemberHistory = () => {
                                     <div className="flex justify-between items-center p-3 border-t border-gray-100 bg-gray-50 rounded-b-lg">
                                         <span className="font-semibold">Total Fines</span>
                                         <span className="text-red-600 font-semibold">
-                                            ${selectedLending.totalFines.toFixed(2)}
+                                            Rp.{selectedLending.totalFines.toFixed(2)}
                                         </span>
                                     </div>
                                 </div>

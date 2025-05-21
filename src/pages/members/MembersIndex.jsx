@@ -367,7 +367,7 @@ export default function MemberManagement() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {members.map((member) => (
-          <div key={member.id} className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200">
+          <div key={member.id} className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-xs overflow-hidden hover:shadow-md transition-shadow border border-gray-100">
             <div className="relative">
               {/* Header stripe */}
               <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-r from-blue-600 to-blue-700" />
@@ -641,7 +641,7 @@ export default function MemberManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
+    <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
       {showAlert && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <Alert
@@ -669,7 +669,7 @@ export default function MemberManagement() {
       <div className="mx-auto">
         {/* Header Section with Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-600">Total Members</p>
@@ -686,7 +686,7 @@ export default function MemberManagement() {
         </div>
 
         {/* Action Bar */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-xl shadow p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex-1 min-w-[60px] max-w-md">
               <div className="relative">

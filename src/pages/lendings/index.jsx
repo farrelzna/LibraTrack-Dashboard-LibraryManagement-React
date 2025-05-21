@@ -415,7 +415,7 @@ const Lendings = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
+        <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
             {/* Header Section */}
             <div className="mb-8">
                 <h1 className="text-2xl text-gray-800">Book's Lending</h1>
@@ -424,7 +424,7 @@ const Lendings = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {/* Form Section */}
-                <div className="bg-white rounded-xl shadow-sm">
+                <div className="bg-white rounded-xl shadow">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Lending Form</h2>
                         <form className="space-y-4">
@@ -492,7 +492,7 @@ const Lendings = () => {
                 </div>
 
                 {/* Guidelines Section */}
-                <div className="bg-white rounded-xl shadow-sm">
+                <div className="bg-white rounded-xl shadow">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Guidelines</h2>
                         <ul className="space-y-3">
@@ -526,7 +526,7 @@ const Lendings = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div>
                         <h2 className="text-sm font-semibold text-gray-800">Lending List</h2>
@@ -627,7 +627,7 @@ const Lendings = () => {
                                     }
 
                                     return (
-                                        <tr key={item.id}>
+                                        <tr key={item.id} className='hover:bg-gray-50'>
                                             <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                                 {books.find(book => book.id === item.id_buku)?.judul || 'Undefined'} - ID : {item.id_buku}
                                             </td>

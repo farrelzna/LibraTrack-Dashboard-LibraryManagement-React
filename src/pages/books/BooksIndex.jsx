@@ -704,7 +704,7 @@ export default function BooksIndex() {
     };
     
     return (
-        <div className="min-h-screen bg-white rounded-xl shadow-sm p-10">
+        <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
             {showAlert && (
                 <Alert
                     type={alertConfig.type}
@@ -720,7 +720,7 @@ export default function BooksIndex() {
 
             {/* Stats Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="bg-white rounded-xl shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs text-gray-600">Total Books</p>
@@ -737,7 +737,7 @@ export default function BooksIndex() {
             </div>
 
             {/* Action Bar */}
-            <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div className="bg-white rounded-xl shadow p-4 mb-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex-1 min-w-[60px] max-w-md">
                         <div className="relative">
