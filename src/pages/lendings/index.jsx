@@ -3,10 +3,10 @@ import axios from 'axios';
 import moment from 'moment';
 import Modal from '../../components/Modal';
 import Swal from 'sweetalert2';
-import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
+import * as XLSX from 'xlsx';
+import Chart from 'react-apexcharts';
 import { API_URL } from '../../constant';
 
-const COLORS = ["#10B981", "#F87171"];
 
 const Lendings = () => {
     const [form, setForm] = useState({
@@ -15,8 +15,6 @@ const Lendings = () => {
         tgl_pinjam: '',
         tgl_pengembalian: ''
     });
-
-    
     const [dataPeminjaman, setDataPeminjaman] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -25,7 +23,8 @@ const Lendings = () => {
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [open, setOpen] = useState(false);
+    const [showExportDropdown, setShowExportDropdown] = useState(false);
+    const [filterStatus, setFilterStatus] = useState('all');
     const [sortConfig, setSortConfig] = useState({
         key: null,
         direction: 'asc'
@@ -129,41 +128,39 @@ const Lendings = () => {
     const handleClearSearch = () => {
         setSearchQuery('');
     };
+    //     if (!searchQuery.trim()) {
+    //         setFilteredData(dataPeminjaman);
+    //         return;
+    //     }
 
-    useEffect(() => {
-        if (!searchQuery.trim()) {
-            setFilteredData(dataPeminjaman);
-            return;
-        }
+    //     const searchTerm = searchQuery.toLowerCase().trim();
 
-        const searchTerm = searchQuery.toLowerCase().trim();
+    //     const filtered = dataPeminjaman.filter(item => {
+    //         const book = books.find(b => b.id === item.id_buku);
+    //         const member = members.find(m => m.id === item.id_member);
 
-        const filtered = dataPeminjaman.filter(item => {
-            const book = books.find(b => b.id === item.id_buku);
-            const member = members.find(m => m.id === item.id_member);
+    //         // Mencari berdasarkan ID Buku
+    //         const bookIdMatch = String(item.id_buku).toLowerCase().includes(searchTerm);
 
-            // Mencari berdasarkan ID Buku
-            const bookIdMatch = String(item.id_buku).toLowerCase().includes(searchTerm);
+    //         // Mencari berdasarkan Judul Buku
+    //         const titleMatch = book && book.judul.toLowerCase().includes(searchTerm);
 
-            // Mencari berdasarkan Judul Buku
-            const titleMatch = book && book.judul.toLowerCase().includes(searchTerm);
+    //         // Mencari berdasarkan ID Member
+    //         const memberIdMatch = String(item.id_member).toLowerCase().includes(searchTerm);
 
-            // Mencari berdasarkan ID Member
-            const memberIdMatch = String(item.id_member).toLowerCase().includes(searchTerm);
+    //         // Mencari berdasarkan Nama Member
+    //         const nameMatch = member && member.nama.toLowerCase().includes(searchTerm);
 
-            // Mencari berdasarkan Nama Member
-            const nameMatch = member && member.nama.toLowerCase().includes(searchTerm);
+    //         // Mencari berdasarkan Tanggal
+    //         const dateMatch =
+    //             item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
+    //             item.tgl_pengembalian.toLowerCase().includes(searchTerm);
 
-            // Mencari berdasarkan Tanggal
-            const dateMatch =
-                item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
-                item.tgl_pengembalian.toLowerCase().includes(searchTerm);
+    //         return bookIdMatch || titleMatch || memberIdMatch || nameMatch || dateMatch;
+    //     });
 
-            return bookIdMatch || titleMatch || memberIdMatch || nameMatch || dateMatch;
-        });
-
-        setFilteredData(filtered);
-    }, [searchQuery, dataPeminjaman, books, members]);
+    //     setFilteredData(filtered);
+    // }, [searchQuery, dataPeminjaman, books, members]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -420,6 +417,253 @@ const Lendings = () => {
         }
     };
 
+    const handleExportData = (type) => {
+        // Prepare the data for export
+        const exportData = dataPeminjaman.map(item => {
+            const book = books.find(b => b.id === item.id_buku);
+            const member = members.find(m => m.id === item.id_member);
+
+            // Calculate if the book is returned late
+            const today = new Date();
+            const returnDate = new Date(item.tgl_pengembalian);
+            const isLate = today > returnDate;
+
+            // Determine the lending status
+            let status = 'Ongoing';
+            if (item.tgl_kembali) {
+                status = isLate ? 'Returned Late' : 'Returned On Time';
+            } else if (isLate) {
+                status = 'Late';
+            }
+
+            return {
+                'Lending ID': item.id,
+                'Book ID': item.id_buku,
+                'Book Title': book ? book.judul : 'N/A', vcmv,
+                'Member ID': item.id_member,
+                'Member Name': member ? member.nama : 'N/A',
+                'Borrow Date': item.tgl_pinjam,
+                'Return Date': item.tgl_pengembalian,
+                'Status': status
+            };
+        });
+
+        if (type === 'csv') {
+            // Export as CSV
+            const headers = Object.keys(exportData[0]).join(',');
+            const csvData = exportData.map(row => Object.values(row).join(',')).join('\n');
+            const blob = new Blob([`${headers}\n${csvData}`], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lendings_export_${moment().format('YYYY-MM-DD')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } else if (type === 'excel') {
+            // Export as Excel
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Lendings');
+            XLSX.writeFile(wb, `lendings_export_${moment().format('YYYY-MM-DD')}.xlsx`);
+        }
+
+        // Show success notification
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: `Successfully exported as ${type.toUpperCase()}`
+        });
+    };
+
+    useEffect(() => {
+        if (!dataPeminjaman.length || !books.length || !members.length) return;
+
+        const today = new Date();
+
+        const filtered = dataPeminjaman.filter(item => {
+            const returnDate = new Date(item.tgl_pengembalian);
+            const isReturnDateValid = !isNaN(returnDate.getTime());
+
+            const belumDikembalikan = item.tgl_kembali === null;
+            const sudahDikembalikan = item.tgl_kembali !== null;
+            const terlambat = isReturnDateValid && today > returnDate;
+
+            switch (filterStatus) {
+                case 'active':
+                    return belumDikembalikan && (!terlambat);
+                case 'late':
+                    return belumDikembalikan && terlambat;
+                case 'returned':
+                    return sudahDikembalikan;
+                case 'all':
+                default:
+                    return true;
+            }
+        });
+
+        const finalFiltered = searchQuery.trim()
+            ? filtered.filter(item => {
+                const searchTerm = searchQuery.toLowerCase();
+                const book = books.find(b => b.id === item.id_buku);
+                const member = members.find(m => m.id === item.id_member);
+
+                return (
+                    String(item.id_buku).toLowerCase().includes(searchTerm) ||
+                    (book && book.judul.toLowerCase().includes(searchTerm)) ||
+                    String(item.id_member).toLowerCase().includes(searchTerm) ||
+                    (member && member.nama.toLowerCase().includes(searchTerm)) ||
+                    item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
+                    item.tgl_pengembalian.toLowerCase().includes(searchTerm)
+                );
+            })
+            : filtered;
+
+        setFilteredData(finalFiltered);
+        setCurrentPage(1);
+    }, [searchQuery, dataPeminjaman, books, members, filterStatus]);
+
+    const [chartData, setChartData] = useState({
+        series: [{
+            name: 'Books Borrowed',
+            data: []
+        }],
+        categories: []
+    });
+
+    useEffect(() => {
+        if (!lendingData || lendingData.length === 0) return;
+
+        // Process data to get monthly borrowing counts
+        const processMonthlyData = () => {
+            // Get the last 12 months
+            const last12Months = [];
+            const monthlyData = [];
+
+            // Generate last 12 months in format 'MMM YYYY'
+            for (let i = 11; i >= 0; i--) {
+                const monthDate = moment().subtract(i, 'months');
+                const monthKey = monthDate.format('MMM YYYY');
+                last12Months.push(monthKey);
+                monthlyData[monthKey] = 0;
+            }
+
+            // Count borrowings for each month
+            lendingData.forEach(lending => {
+                const borrowDate = moment(lending.tgl_pinjam);
+                // Only consider data from the last 12 months
+                if (borrowDate.isAfter(moment().subtract(12, 'months'))) {
+                    const monthKey = borrowDate.format('MMM YYYY');
+                    if (monthlyData[monthKey] !== undefined) {
+                        monthlyData[monthKey]++;
+                    }
+                }
+            });
+
+            // Convert to arrays for ApexCharts
+            const seriesData = last12Months.map(month => monthlyData[month] || 0);
+
+            setChartData({
+                series: [{
+                    name: 'Books Borrowed',
+                    data: seriesData
+                }],
+                categories: last12Months
+            });
+        };
+
+        processMonthlyData();
+    }, [lendingData]);
+
+    const chartOptions = {
+        chart: {
+            type: 'area',
+            height: 350,
+            zoom: {
+                enabled: false
+            },
+            toolbar: {
+                show: false
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.7,
+                opacityTo: 0.3,
+                stops: [0, 90, 100]
+            }
+        },
+        xaxis: {
+            categories: chartData.categories,
+            labels: {
+                style: {
+                    fontSize: '10px'
+                }
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Number of Books'
+            },
+            min: 0,
+            forceNiceScale: true,
+            labels: {
+                formatter: (val) => Math.round(val)
+            }
+        },
+        colors: ['#4f46e5'],
+        tooltip: {
+            y: {
+                formatter: (val) => `${val} books`
+            }
+        },
+        title: {
+            text: 'Monthly Book Borrowings',
+            align: 'left',
+            style: {
+                fontSize: '16px',
+                fontWeight: 'bold'
+            }
+        },
+        subtitle: {
+            text: 'Last 12 months',
+            align: 'left',
+            style: {
+                fontSize: '12px',
+                color: '#9ca3af'
+            }
+        },
+        grid: {
+            borderColor: '#f3f4f6',
+            row: {
+                colors: ['#ffffff', '#f9fafb']
+            }
+        },
+        markers: {
+            size: 5,
+            hover: {
+                size: 7
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
             {/* Header Section */}
@@ -497,52 +741,86 @@ const Lendings = () => {
                     </div>
                 </div>
                 <div className="bg-white rounded-xl shadow">
-                    <button
-                        onClick={() => setOpen(!open)}
-                        className="flex items-center justify-between w-full px-6 py-4 text-sm font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none"
-                    >
-                        <span>Guidelines</span>
-                        <svg
-                            className={`w-4 h-4 transform transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    {open && (
-                        <div className="px-6 pb-4">
-                            <ul className="space-y-3">
-                                <li className="flex text-xs items-center text-gray-700">
-                                    <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Ensure Book ID and Member ID are valid
-                                </li>
-                                <li className="flex text-xs items-center text-gray-700">
-                                    <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    Return date must be at least 3 days from borrow date
-                                </li>
-                                <li className="flex text-xs items-center text-gray-700">
-                                    <svg className="w-3.5 h-3.5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                    Late returns will incur a fine
-                                </li>
-                                <li className="flex text-xs items-center text-gray-700">
-                                    <svg className="w-3.5 h-3.5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1M12 20v1M3 12h1M20 12h1" />
-                                    </svg>
-                                    "Undefined" Data not available (deleted)
-                                </li>
-                            </ul>
+                    <div className="p-6">
+                        <h2 className="text-sm font-semibold text-gray-800 mb-4">Guidelines</h2>
+                        <ul className="space-y-3">
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Ensure Book ID and Member ID are valid
+                            </li>
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Return date must be at least 3 days from borrow date
+                            </li>
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                Late returns will incur a fine
+                            </li>
+                            <li className="flex text-xs items-center text-gray-700">
+                                <svg className="w-3.5 h-3.5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1M12 20v1M3 12h1M20 12h1" />
+                                </svg>
+                                "Undefined" Data not available (deleted)
+                            </li>
+                        </ul>
+                        <div className="grid grid-cols-2 gap-x-4 mt-6">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors duration-300 justify-center p-4 shadow-sm">
+                                <div className='mb-2'>
+                                    <p className="text-xs text-white">Total Records</p>
+                                    <p className="text-xl font-bold text-white">
+                                        {filteredData.length}
+                                    </p>
+                                </div>
+                                <div className='text-end'>
+                                    <p className="text-xs text-white">Active Loans</p>
+                                    <p className="text-xl font-bold text-white">
+                                        {dataPeminjaman.filter(item => !item.status_pengembalian).length}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-white p-4 rounded-lg shadow-sm">
+                                <div className='mb-2'>
+                                    <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Overdue</p>
+                                    <p className="text-xl font-bold text-blue-700 hover:text-blue-500 duration-300">
+                                        {dataPeminjaman.filter(item =>
+                                            !item.status_pengembalian &&
+                                            moment().isAfter(moment(item.tgl_pengembalian))
+                                        ).length}
+                                    </p>
+                                </div>
+                                <div className='text-end'>
+                                    <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Returned</p>
+                                    <p className="text-xl font-bold text-blue-700 hover:text-blue-500 duration-300">
+                                        {dataPeminjaman.filter(item =>
+                                            !item.status_pengembalian &&
+                                            moment().isAfter(moment(item.tgl_pengembalian))
+                                        ).length}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow mb-8">
+                <div className="p-6">
+                    <h2 className="text-sm font-semibold text-gray-800 mb-4">Monthly Borrowing Statistics</h2>
+                    <div className="h-80">
+                        <Chart
+                            options={chartOptions}
+                            series={chartData.series}
+                            type="area"
+                            height="100%"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -553,32 +831,95 @@ const Lendings = () => {
                     </div>
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <div className="relative">
+                            <div className="relative w-full">
                                 <input
                                     type="text"
                                     value={searchQuery}
                                     onChange={handleSearch}
                                     placeholder="Search by Book ID, Book Title, Member ID, Member Name, or Date..."
-                                    className="w-full p-3 pl-10 text-xs rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-90 p-2 pl-10 text-xs rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
-                                <div className="absolute left-3 top-4 text-gray-400">
+                                <div className="absolute left-3 top-2.5 text-gray-400">
                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        {searchQuery && (
+                        <div className="flex gap-2 mb-4">
+                            <div className="dropdown relative">
+                                <button
+                                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                                    className="px-4 py-2 w-full bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span className="text-xs">Export</span>
+                                </button>
+                                <div
+                                    className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'
+                                        }`}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            handleExportData('csv');
+                                            setShowExportDropdown(false);
+                                        }}
+                                        className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
+                                    >
+                                        Export as CSV
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleExportData('excel');
+                                            setShowExportDropdown(false);
+                                        }}
+                                        className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
+                                    >
+                                        Export as Excel
+                                    </button>
+                                </div>
+                            </div>
                             <button
-                                onClick={handleClearSearch}
-                                className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                onClick={() => setFilterStatus('all')}
+                                className={`px-6 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'all'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
                             >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                All
                             </button>
-                        )}
+                            <button
+                                onClick={() => setFilterStatus('active')}
+                                className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'active'
+                                    ? 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-400'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Active
+                            </button>
+                            <button
+                                onClick={() => setFilterStatus('late')}
+                                className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'late'
+                                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-500'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Late
+                            </button>
+                            <button
+                                onClick={() => setFilterStatus('returned')}
+                                className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'returned'
+                                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-500'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Returned
+                            </button>
+                        </div>
                     </div>
+
                 </div>
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">

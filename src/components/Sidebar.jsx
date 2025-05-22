@@ -66,8 +66,8 @@ export default function Sidebar() {
       )
     },
     {
-      id: 'purchase',
-      label: 'Purchase Books',
+      id: 'fines',
+      label: 'Fines Data',
       path: '/books/restorations',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,7 +103,7 @@ export default function Sidebar() {
       {/* Sidebar */}
       <div className={`bg-white transition-all duration-300 ${isOpen ? 'w-50' : 'w-20'} min-h-screen px-4 flex flex-col`}>
         <div className="py-6">
-          <div className="text-xl font-semibold text-gray-800 h-10 flex items-center">
+          <div className="text-xl font-semibold text-gray-800 h-10 flex items-center justify-center">
             {isOpen ? (
               <span>LibraTrack</span>
             ) : (

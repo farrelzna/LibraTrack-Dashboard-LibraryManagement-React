@@ -512,7 +512,7 @@ const MemberHistory = () => {
                                 <p className="font-medium text-gray-900">#{selectedLending.memberID}</p>
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Export To</p>
+                                <p className="text-xs text-gray-500">Export To</p>                                
                                 <a href="" onClick={handleExportByMember} className='text-red-400 hover:text-red-700 underline'>PDF</a>
                             </div>
                         </div>

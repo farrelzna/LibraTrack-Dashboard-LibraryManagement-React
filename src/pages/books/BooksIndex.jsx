@@ -1047,7 +1047,7 @@ export default function BooksIndex() {
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="block text-xs font-medium text-gray-700">Detail</label>
+                            <label className="block text-xs font-medium text-gray-700">Description</label>
                             <textarea
                                 name="detail"
                                 value={form.detail}

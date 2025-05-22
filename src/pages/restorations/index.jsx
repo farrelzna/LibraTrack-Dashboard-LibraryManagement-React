@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Modal from '../../components/Modal';
+import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
+import { API_URL } from '../../constant'
 
 const Restorations = () => {
     const [form, setForm] = useState({
@@ -11,11 +13,23 @@ const Restorations = () => {
         jenis_denda: '',
         deskripsi: ''
     });
+    const [totalStats, setTotalStats] = useState({
+        total: 0,
+        defect: 0,
+        late: 0,
+        other: 0,
+        totalCount: 0,
+        defectCount: 0,
+        lateCount: 0,
+        otherCount: 0
+    });
     const [books, setBooks] = useState([]);
     const [members, setMembers] = useState([]);
     const [dendaData, setDendaData] = useState([]);
     const [detailDenda, setDetailDenda] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showExportDropdown, setShowExportDropdown] = useState(false);
+    const [filterStatus, setFilterStatus] = useState('all');
     const [sortConfig, setSortConfig] = useState({
         key: null,
         direction: 'asc'
@@ -49,109 +63,86 @@ const Restorations = () => {
         setCurrentPage(1);
     }, [pageSize, filteredData]);
 
-    const API_URL = 'http://45.64.100.26:88/perpus-api/public/api';
-    const apiUrl = `${API_URL}/denda`;
     const getToken = localStorage.getItem('access_token');
 
-    const fetchDenda = useCallback(async () => {
-        try {
-            console.log('Fetching with token:', getToken); // Log token
-            const res = await axios.get(apiUrl, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
-            console.log('Raw API Response:', res); // Log seluruh response
+    // Merged fetch function to handle all data types
+    const fetchData = useCallback(async () => {
+        // Define the endpoints to fetch
+        const endpoints = [
+            { name: 'denda', setter: setDendaData },
+            { name: 'buku', setter: setBooks },
+            { name: 'member', setter: setMembers }
+        ];
 
-            if (res.data && Array.isArray(res.data.data)) {
-                setDendaData(res.data.data);
-            } else if (Array.isArray(res.data)) {
-                setDendaData(res.data);
-            } else {
-                console.error('Unexpected data format:', res.data);
-                setDendaData([]);
+        // Process each endpoint
+        const fetchPromises = endpoints.map(async ({ name, setter }) => {
+            try {
+                // Fix the URL format - remove leading slash if API_URL has trailing slash
+                const url = `${API_URL}${name.startsWith('/') ? name.substring(1) : name}`;
+                console.log(`Fetching ${name} with URL:`, url);
+
+                const response = await axios.get(url, {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${getToken}`
+                    }
+                });
+
+                console.log(`${name.charAt(0).toUpperCase() + name.slice(1)} API Response:`, response);
+
+                // Handle different response formats
+                if (response.data && Array.isArray(response.data.data)) {
+                    setter(response.data.data);
+                } else if (Array.isArray(response.data)) {
+                    setter(response.data);
+                } else if (response.data && typeof response.data === 'object') {
+                    setter([response.data]);
+                } else {
+                    console.error(`Unexpected ${name} data format:`, response.data);
+                    setter([]);
+                }
+
+                return { success: true, name };
+            } catch (error) {
+                console.error(`Error fetching ${name}:`, error);
+                console.error(`Error details:`, error.response?.data || error.message);
+                setter([]);
+
+                // Show error notification only for critical failures
+                if (name !== 'denda') { // Don't show for denda as it might be less critical
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `Failed to load ${name} data`
+                    });
+                }
+
+                return { success: false, name, error };
+            }
+        });
+
+        // Wait for all requests to complete
+        try {
+            const results = await Promise.allSettled(fetchPromises);
+            console.log('All data fetch results:', results);
+
+            // Check if all critical data was loaded
+            const criticalFailures = results.filter(
+                (result, index) => result.status === 'rejected' ||
+                    (!result.value.success && endpoints[index].name !== 'denda')
+            );
+
+            if (criticalFailures.length > 0) {
+                console.error('Critical data loading failures:', criticalFailures);
             }
         } catch (error) {
-            console.error('Error detail:', error.response?.data || error.message);
-            // ... existing code ...
+            console.error('Error in batch data loading:', error);
         }
-    }, [getToken, apiUrl]);
-
-    const fetchBooks = useCallback(async () => {
-        try {
-            const response = await axios.get(`${API_URL}/buku`, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
-            console.log('Books API Response:', response);
-
-            if (response.data && response.data.data) {
-                setBooks(response.data.data);
-            } else if (Array.isArray(response.data)) {
-                setBooks(response.data);
-            } else {
-                console.error('Unexpected books data format:', response.data);
-                setBooks([]);
-            }
-        } catch (error) {
-            console.error('Error fetching books:', error);
-            console.error('Error details:', error.response?.data || error.message);
-            setBooks([]);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to load books data'
-            });
-        }
-    }, [getToken, API_URL]);
-
-    const fetchMembers = useCallback(async () => {
-        try {
-            const response = await axios.get(`${API_URL}/member`, {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${getToken}`
-                }
-            });
-            console.log('Members API Response:', response);
-
-            if (response.data && response.data.data) {
-                setMembers(response.data.data);
-            } else if (Array.isArray(response.data)) {
-                setMembers(response.data);
-            } else {
-                console.error('Unexpected members data format:', response.data);
-                setMembers([]);
-            }
-        } catch (error) {
-            console.error('Error fetching members:', error);
-            console.error('Error details:', error.response?.data || error.message);
-            setMembers([]);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to load members data'
-            });
-        }
-    }, [getToken, API_URL]);
+    }, [getToken]);
 
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                await Promise.all([
-                    fetchDenda(),
-                    fetchBooks(),
-                    fetchMembers()
-                ]);
-            } catch (error) {
-                console.error('Error loading data:', error);
-            }
-        };
-        loadData();
-    }, [fetchDenda, fetchBooks, fetchMembers]);
+        fetchData();
+    }, [fetchData]);
 
     const handleShowDetail = (id_member) => {
         const detail = dendaData.find((denda) => denda.id_member === id_member);
@@ -240,7 +231,7 @@ const Restorations = () => {
                 deskripsi: ''
             });
 
-            
+
             fetchDenda();
             Swal.fire({
                 icon: 'success',
@@ -342,44 +333,154 @@ const Restorations = () => {
         setSearchQuery(e.target.value);
     };
 
-    const handleClearSearch = () => {
-        setSearchQuery('');
-    };
-
     useEffect(() => {
-        if (!searchQuery.trim()) {
-            setFilteredData(dendaData);
-            return;
+        let filtered = dendaData;
+
+        // Apply status filter
+        if (filterStatus !== 'all') {
+            filtered = filtered.filter(item => {
+                switch (filterStatus) {
+                    case 'active':
+                        return item.jenis_denda === 'kerusakan'; // Defect fines
+                    case 'late':
+                        return item.jenis_denda === 'terlambat'; // Late return fines
+                    case 'returned':
+                        return item.jenis_denda === 'lainnya'; // Other types of fines
+                    default:
+                        return true;
+                }
+            });
         }
 
-        const searchTerm = searchQuery.toLowerCase().trim();
+        // Apply search filter if there's a search query
+        if (searchQuery.trim()) {
+            const searchTerm = searchQuery.toLowerCase().trim();
+            filtered = filtered.filter(item => {
+                const book = books.find(b => b.id === item.id_buku);
+                const member = members.find(m => m.id === item.id_member);
 
-        const filtered = dendaData.filter(item => {
+                return (
+                    String(item.id_buku).toLowerCase().includes(searchTerm) ||
+                    (book && book.judul.toLowerCase().includes(searchTerm)) ||
+                    String(item.id_member).toLowerCase().includes(searchTerm) ||
+                    (member && member.nama.toLowerCase().includes(searchTerm)) ||
+                    item.jenis_denda.toLowerCase().includes(searchTerm) ||
+                    (item.deskripsi && item.deskripsi.toLowerCase().includes(searchTerm))
+                );
+            });
+        }
+
+        setFilteredData(filtered);
+        setCurrentPage(1); // Reset to first page when filter changes
+    }, [searchQuery, dendaData, books, members, filterStatus]);
+
+
+    const handleExportData = (type) => {
+        // Prepare the data for export
+        const exportData = dendaData.map(item => {
             const book = books.find(b => b.id === item.id_buku);
             const member = members.find(m => m.id === item.id_member);
 
-            // Mencari berdasarkan ID Buku
-            const bookIdMatch = String(item.id_buku).toLowerCase().includes(searchTerm);
-
-            // Mencari berdasarkan Judul Buku
-            const titleMatch = book && book.judul.toLowerCase().includes(searchTerm);
-
-            // Mencari berdasarkan ID Member
-            const memberIdMatch = String(item.id_member).toLowerCase().includes(searchTerm);
-
-            // Mencari berdasarkan Nama Member
-            const nameMatch = member && member.nama.toLowerCase().includes(searchTerm);
-
-            // Mencari berdasarkan jenis denda atau deskripsi
-            const jenisMatch = item.jenis_denda.toLowerCase().includes(searchTerm);
-            const deskripsiMatch = item.deskripsi?.toLowerCase().includes(searchTerm);
-
-            return bookIdMatch || titleMatch || memberIdMatch || nameMatch || jenisMatch || deskripsiMatch;
+            return {
+                'Fine ID': item.id,
+                'Member ID': item.id_member,
+                'Member Name': member ? member.nama : 'N/A',
+                'Book ID': item.id_buku,
+                'Book Title': book ? book.judul : 'N/A',
+                'Fine Amount': formatRupiah(item.jumlah_denda),
+                'Fine Type': item.jenis_denda,
+                'Description': item.deskripsi || 'N/A'
+            };
         });
 
-        setFilteredData(filtered);
-    }, [searchQuery, dendaData, books, members]);
+        if (type === 'csv') {
+            // Export as CSV
+            const headers = Object.keys(exportData[0]).join(',');
+            const csvData = exportData.map(row => Object.values(row).join(',')).join('\n');
+            const blob = new Blob([`${headers}\n${csvData}`], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `restorations_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } else if (type === 'excel') {
+            // Export as Excel
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Restorations');
+            XLSX.writeFile(wb, `restorations_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
 
+        // Show success notification
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: `Successfully exported as ${type.toUpperCase()}`
+        });
+    };
+
+    useEffect(() => {
+        if (!dendaData || dendaData.length === 0) {
+            setTotalStats({
+                total: 0,
+                defect: 0,
+                late: 0,
+                other: 0,
+                
+                totalCount: 0,
+                defectCount: 0,
+                lateCount: 0,
+                otherCount: 0
+            });
+            return;
+        }
+
+        const stats = {
+            total: 0,
+            defect: 0,
+            late: 0,
+            other: 0,
+            totalCount: dendaData.length,
+            defectCount: 0,
+            lateCount: 0,
+            otherCount: 0
+        };
+
+
+        dendaData.forEach(denda => {
+            const amount = parseFloat(denda.jumlah_denda) || 0;
+            stats.total += amount;
+
+            switch (denda.jenis_denda) {
+                case 'kerusakan':
+                    stats.defect += amount;
+                    stats.defectCount++;
+                    break;
+                case 'terlambat':
+                    stats.late += amount;
+                    stats.lateCount++;
+                    break;
+                case 'lainnya':
+                    stats.other += amount;
+                    stats.otherCount++;
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        setTotalStats(stats);
+    }, [dendaData]);
 
 
     return (
@@ -513,6 +614,36 @@ const Restorations = () => {
                                 "Undefined" Data not available (deleted)
                             </li>
                         </ul>
+                        <div className="grid grid-cols-2 gap-x-4 mt-6">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors duration-300 justify-center p-4 shadow-sm">
+                                <div className='mb-2'>
+                                    <p className="text-xs text-white">Total Amount</p>
+                                    <p className="text-xs font-bold text-white">
+                                    {formatRupiah(totalStats.total)}
+                                    </p>
+                                </div>
+                                <div className='text-end'>
+                                    <p className="text-xs text-white">Defect</p>
+                                    <p className="text-xs font-bold text-white">
+                                    {formatRupiah(totalStats.defect)} <span className="text-sm ml-1">({totalStats.defectCount})</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-white p-4 rounded-lg shadow-sm">
+                                <div className='mb-2'>
+                                    <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Late</p>
+                                    <p className="text-xs font-bold text-blue-700 hover:text-blue-500 duration-300">
+                                        {formatRupiah(totalStats.late)} <span className="text-sm ml-1">({totalStats.lateCount})</span>
+                                    </p>
+                                </div>
+                                <div className='text-end'>
+                                    <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Other</p>
+                                    <p className="text-xs font-bold text-blue-700 hover:text-blue   -500 duration-300">
+                                        {formatRupiah(totalStats.other)} <span className="text-sm ml-1">({totalStats.otherCount})</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -540,16 +671,78 @@ const Restorations = () => {
                                 </div>
                             </div>
                         </div>
-                        {searchQuery && (
+                        <div className="flex gap-2 mb-4">
+                            <div className="dropdown relative">
+                                <button
+                                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                                    className="px-4 py-2 w-full bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span className="text-xs">Export</span>
+                                </button>
+                                <div
+                                    className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'
+                                        }`}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            handleExportData('csv');
+                                            setShowExportDropdown(false);
+                                        }}
+                                        className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
+                                    >
+                                        Export as CSV
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleExportData('excel');
+                                            setShowExportDropdown(false);
+                                        }}
+                                        className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
+                                    >
+                                        Export as Excel
+                                    </button>
+                                </div>
+                            </div>
                             <button
-                                onClick={handleClearSearch}
-                                className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                onClick={() => setFilterStatus('all')}
+                                className={`px-6 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'all'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
                             >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                All
                             </button>
-                        )}
+                            <button
+                                onClick={() => setFilterStatus('active')}
+                                className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'active'
+                                    ? 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-400'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Defect
+                            </button>
+                            <button
+                                onClick={() => setFilterStatus('late')}
+                                className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'late'
+                                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-500'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Late
+                            </button>
+                            <button
+                                onClick={() => setFilterStatus('returned')}
+                                className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'returned'
+                                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-500'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Other
+                            </button>
+                        </div>
                     </div>
                 </div>
 
