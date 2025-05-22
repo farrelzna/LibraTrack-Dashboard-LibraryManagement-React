@@ -3,7 +3,10 @@ import axios from 'axios';
 import moment from 'moment';
 import Modal from '../../components/Modal';
 import Swal from 'sweetalert2';
+import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
 import { API_URL } from '../../constant';
+
+const COLORS = ["#10B981", "#F87171"];
 
 const Lendings = () => {
     const [form, setForm] = useState({
@@ -12,6 +15,8 @@ const Lendings = () => {
         tgl_pinjam: '',
         tgl_pengembalian: ''
     });
+
+    
     const [dataPeminjaman, setDataPeminjaman] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -20,6 +25,7 @@ const Lendings = () => {
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [open, setOpen] = useState(false);
     const [sortConfig, setSortConfig] = useState({
         key: null,
         direction: 'asc'
@@ -490,39 +496,53 @@ const Lendings = () => {
                         </form>
                     </div>
                 </div>
-
-                {/* Guidelines Section */}
                 <div className="bg-white rounded-xl shadow">
-                    <div className="p-6">
-                        <h2 className="text-sm font-semibold text-gray-800 mb-4">Guidelines</h2>
-                        <ul className="space-y-3">
-                            <li className="flex text-xs items-center text-gray-700">
-                                <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Ensure Book ID and Member ID are valid
-                            </li>
-                            <li className="flex text-xs items-center text-gray-700">
-                                <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                Return date must be at least 3 days from borrow date
-                            </li>
-                            <li className="flex text-xs items-center text-gray-700">
-                                <svg className="w-3.5 h-3.5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                Late returns will incur a fine
-                            </li>
-                            <li className="flex text-xs items-center text-gray-700">
-                                <svg className="w-3.5 h-3.5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1M12 20v1M3 12h1M20 12h1" />
-                                </svg>
-                                "Undefined" Data not available (deleted)
-                            </li>
-                        </ul>
-                    </div>
+                    <button
+                        onClick={() => setOpen(!open)}
+                        className="flex items-center justify-between w-full px-6 py-4 text-sm font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none"
+                    >
+                        <span>Guidelines</span>
+                        <svg
+                            className={`w-4 h-4 transform transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    {open && (
+                        <div className="px-6 pb-4">
+                            <ul className="space-y-3">
+                                <li className="flex text-xs items-center text-gray-700">
+                                    <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Ensure Book ID and Member ID are valid
+                                </li>
+                                <li className="flex text-xs items-center text-gray-700">
+                                    <svg className="w-3.5 h-3.5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Return date must be at least 3 days from borrow date
+                                </li>
+                                <li className="flex text-xs items-center text-gray-700">
+                                    <svg className="w-3.5 h-3.5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    Late returns will incur a fine
+                                </li>
+                                <li className="flex text-xs items-center text-gray-700">
+                                    <svg className="w-3.5 h-3.5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1M12 20v1M3 12h1M20 12h1" />
+                                    </svg>
+                                    "Undefined" Data not available (deleted)
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
 

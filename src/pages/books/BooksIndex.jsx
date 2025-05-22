@@ -378,7 +378,7 @@ export default function BooksIndex() {
 
     const GridView = ({ books, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows }) => {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 p-5 gap-6">
                 {books.map((book) => (
                     <div key={book.id} className="relative group">
                         {/* Checkbox for selection - positioned top right */}
@@ -401,19 +401,32 @@ export default function BooksIndex() {
                         <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden h-full flex flex-col">
                             {/* Book Cover */}
                             <div className="relative h-64 bg-gradient-to-br from-blue-600 to-blue-700 p-4 flex items-center justify-center">
-                                <div className="absolute inset-0 bg-black opacity-10"></div>
-                                <div className="relative w-40 h-56 bg-white rounded shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-300">
-                                    <div className="absolute inset-0 border-2 border-gray-200 rounded"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                                {/* Overlay for dim background */}
+                                <div className="absolute inset-0 bg-black opacity-10 rounded-lg "></div>
+
+                                {/* Book cover container */}
+                                <div className="relative w-40 h-56 bg-white rounded-md shadow-xl transform -rotate-6 hover:rotate-0 transition-transform duration-500 ease-in-out group overflow-hidden">
+
+                                    {/* Book spine */}
+                                    <div className="absolute top-0 left-0 h-full w-6 bg-gradient-to-r from-gray-300 via-gray-200 to-transparent rounded-l-md shadow-inner z-10"></div>
+
+                                    {/* Front cover */}
+                                    <div className="absolute inset-0 pl-3 pr-2 py-4 flex flex-col justify-between z-20">
                                         <div className="text-center">
-                                            <div className="font-bold text-gray-800 mb-2 line-clamp-2">{book.judul}</div>
-                                            <div className="text-xs text-gray-600">{book.pengarang}</div>
+                                            <div className="font-bold text-gray-800 text-sm mb-2 line-clamp-2">{book.judul}</div>
+                                            <div className="text-xs text-gray-500 italic">{book.pengarang}</div>
                                         </div>
+                                        <div className="text-[10px] text-gray-400 text-right pr-1">LibraTrack</div>
                                     </div>
-                                    {/* Book spine effect */}
-                                    <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-gray-200 to-transparent"></div>
+
+                                    {/* Edge shadow to give 3D depth */}
+                                    <div className="absolute top-0 right-0 h-full w-1 bg-gradient-to-l from-gray-300 to-transparent"></div>
+
+                                    {/* Hover glow effect */}
+                                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition duration-300 rounded-sm"></div>
                                 </div>
                             </div>
+
 
                             {/* Book Information */}
                             <div className="p-4 flex-1 flex flex-col">
@@ -671,7 +684,7 @@ export default function BooksIndex() {
         const newSize = Number(e.target.value);
         setPageSize(newSize);
         setCurrentPage(1);
-        
+
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -687,7 +700,7 @@ export default function BooksIndex() {
 
     const handleSearch = (searchTerm) => {
         setSearchTerm(searchTerm);
-        
+
         if (searchTerm) {
             const Toast = Swal.mixin({
                 toast: true,
@@ -702,7 +715,7 @@ export default function BooksIndex() {
             });
         }
     };
-    
+
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
             {showAlert && (
@@ -737,8 +750,8 @@ export default function BooksIndex() {
             </div>
 
             {/* Action Bar */}
-            <div className="bg-white rounded-xl shadow p-4 mb-6">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-white rounded-xl shadow">
+                <div className="flex flex-wrap items-center p-4 justify-between gap-4">
                     <div className="flex-1 min-w-[60px] max-w-md">
                         <div className="relative">
                             <input
@@ -847,30 +860,30 @@ export default function BooksIndex() {
                         </button>
                     </div>
                 </div>
-            </div>
 
-            {/* Books Grid/List */}
-            {view === 'table' ? (
-                <TableView
-                    books={paginatedBooks} // Use paginatedBooks instead of filteredBooks
-                    handleDetail={handleDetail}
-                    handleEdit={handleEdit}
-                    handleDelete={handleDelete}
-                    selectedRows={selectedRows}
-                    setSelectedRows={setSelectedRows}
-                    sortConfig={sortConfig}
-                    requestSort={requestSort}
-                />
-            ) : (
-                <GridView
-                    books={paginatedBooks} // Use paginatedBooks instead of filteredBooks
-                    handleDetail={handleDetail}
-                    handleEdit={handleEdit}
-                    handleDelete={handleDelete}
-                    selectedRows={selectedRows}
-                    setSelectedRows={setSelectedRows}
-                />
-            )}
+                {/* Books Grid/List */}
+                {view === 'table' ? (
+                    <TableView
+                        books={paginatedBooks} // Use paginatedBooks instead of filteredBooks
+                        handleDetail={handleDetail}
+                        handleEdit={handleEdit}
+                        handleDelete={handleDelete}
+                        selectedRows={selectedRows}
+                        setSelectedRows={setSelectedRows}
+                        sortConfig={sortConfig}
+                        requestSort={requestSort}
+                    />
+                ) : (
+                    <GridView
+                        books={paginatedBooks} // Use paginatedBooks instead of filteredBooks
+                        handleDetail={handleDetail}
+                        handleEdit={handleEdit}
+                        handleDelete={handleDelete}
+                        selectedRows={selectedRows}
+                        setSelectedRows={setSelectedRows}
+                    />
+                )}
+            </div>
 
             <div className="mt-6 border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between">
@@ -893,7 +906,7 @@ export default function BooksIndex() {
                         <div className="text-xs text-gray-700">
                             Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredBooks.length)} of {filteredBooks.length} entries
                         </div>
-                        
+
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => handlePageChange(1)}
@@ -922,11 +935,10 @@ export default function BooksIndex() {
                                         <button
                                             key={pageNumber}
                                             onClick={() => handlePageChange(pageNumber)}
-                                            className={`px-3 py-1 text-xs rounded-lg ${
-                                                currentPage === pageNumber
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-white border border-gray-300 hover:bg-gray-50'
-                                            }`}
+                                            className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-white border border-gray-300 hover:bg-gray-50'
+                                                }`}
                                         >
                                             {pageNumber}
                                         </button>
@@ -1098,16 +1110,16 @@ export default function BooksIndex() {
                                 <p className="font-medium">{selectedBook.stok}</p>
                             </div>
                         </div>
-                            <div className="p-2 bg-gray-50 rounded">
-                                <p className="text-xs text-gray-500">Detail</p>
-                                <p className="font-medium">{selectedBook.detail}</p>
-                            </div>
+                        <div className="p-2 bg-gray-50 rounded">
+                            <p className="text-xs text-gray-500">Detail</p>
+                            <p className="font-medium">{selectedBook.detail}</p>
+                        </div>
                         <div className="flex justify-end">
                             <button
                                 onClick={() => setShowDetailModal(false)}
                                 className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                             >
-                                Close   
+                                Close
                             </button>
                         </div>
                     </div>
@@ -1230,7 +1242,7 @@ export default function BooksIndex() {
                     {selectedBook && (
                         <>
                             <p className="text-gray-600">
-                            Are you sure you want to delete this book?
+                                Are you sure you want to delete this book?
                             </p>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h3 className="font-medium text-gray-800">{selectedBook.judul}</h3>

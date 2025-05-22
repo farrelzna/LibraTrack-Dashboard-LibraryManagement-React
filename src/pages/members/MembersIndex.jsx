@@ -365,7 +365,7 @@ export default function MemberManagement() {
 
   const GridView = ({ members, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows }) => {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 p-5 gap-6">
         {members.map((member) => (
           <div key={member.id} className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-xs overflow-hidden hover:shadow-md transition-shadow border border-gray-100">
             <div className="relative">
@@ -373,9 +373,12 @@ export default function MemberManagement() {
               <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-r from-blue-600 to-blue-700" />
 
               <div className="p-6 relative">
-                <div>
-                  <h3 className="text-sm font-semibold text-white absolute top-5 right-4 leading-tight">{member.nama}</h3>
+                <div className="relative">
+                  <h3 className="text-sm font-semibold text-white text-right absolute top-0 right-0 truncate w-[10rem] leading-tight" title={member.nama}>
+                    {member.nama}
+                  </h3>
                 </div>
+
                 {/* Profile Icon */}
                 <div className="relative z-10 flex flex-col mb-4">
                   <div className="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center border-4 border-white">
@@ -398,7 +401,7 @@ export default function MemberManagement() {
                       className="rounded-2xl border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </div>
-                  <div className="my-4 px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                  <div className="mt-4 px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
                     ID: {member.no_ktp}
                   </div>
                 </div>
@@ -424,7 +427,7 @@ export default function MemberManagement() {
                   <div className="flex justify-between items-center">
                     <button
                       onClick={() => handleDetail(member.id)}
-                      className="px-3 py-1.5 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center"
+                      className="px-6 py-1.5 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -434,7 +437,7 @@ export default function MemberManagement() {
                     </button>
                     <button
                       onClick={() => handleEdit(member)}
-                      className="px-3 py-1.5 text-xs bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors inline-flex items-center"
+                      className="px-6 py-1.5 text-xs bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors inline-flex items-center"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -443,7 +446,7 @@ export default function MemberManagement() {
                     </button>
                     <button
                       onClick={() => handleDelete(member.id)}
-                      className="px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors inline-flex items-center"
+                      className="px-6 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors inline-flex items-center"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -686,8 +689,8 @@ export default function MemberManagement() {
         </div>
 
         {/* Action Bar */}
-        <div className="bg-white rounded-xl shadow p-4 mb-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-white rounded-xl shadow">
+          <div className="flex flex-wrap items-center p-4 justify-between gap-4">
             <div className="flex-1 min-w-[60px] max-w-md">
               <div className="relative">
                 <input
@@ -817,30 +820,30 @@ export default function MemberManagement() {
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Existing table code with new features */}
-        {view === 'table' ? (
-          <TableView
-            members={paginatedMembers}
-            handleDetail={fetchMemberDetail}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-            selectedRows={selectedRows}
-            setSelectedRows={setSelectedRows}
-            sortConfig={sortConfig}
-            requestSort={requestSort}
-          />
-        ) : (
-          <GridView
-            members={paginatedMembers}
-            handleDetail={fetchMemberDetail}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-            selectedRows={selectedRows}
-            setSelectedRows={setSelectedRows}
-          />
-        )}
+          {/* Existing table code with new features */}
+          {view === 'table' ? (
+            <TableView
+              members={paginatedMembers}
+              handleDetail={fetchMemberDetail}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+              selectedRows={selectedRows}
+              setSelectedRows={setSelectedRows}
+              sortConfig={sortConfig}
+              requestSort={requestSort}
+            />
+          ) : (
+            <GridView
+              members={paginatedMembers}
+              handleDetail={fetchMemberDetail}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+              selectedRows={selectedRows}
+              setSelectedRows={setSelectedRows}
+            />
+          )}
+        </div>
 
         <div className="mt-6 border-t border-gray-200 pt-4">
           <div className="flex items-center justify-between">
@@ -982,22 +985,22 @@ export default function MemberManagement() {
           <form onSubmit={isEditMode ? handleSubmitModal : handleCreateMember} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700">ID Number</label>
+                <label className="block text-xs font-medium max-w-xs truncate text-gray-700">Name</label>
                 <input
                   type="text"
-                  name="no_ktp"
-                  value={formModal.no_ktp}
+                  name="nama"
+                  value={formModal.nama}
                   onChange={handleInputChange}
                   className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700">Name</label>
+                <label className="block text-xs font-medium text-gray-700">ID Number</label>
                 <input
                   type="text"
-                  name="nama"
-                  value={formModal.nama}
+                  name="no_ktp"
+                  value={formModal.no_ktp}
                   onChange={handleInputChange}
                   className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
                   required

@@ -7,6 +7,9 @@ import BooksIndex from "../pages/books/BooksIndex";
 import Lendings from "../pages/lendings/index";
 import Restoratiosn from "../pages/restorations/index";
 import LendingsHistory from "../pages/lendings/data";
+import Profile from "../pages/User/Profile"
+import Setting from "../pages/User/Setting";
+import Alert from "../pages/AlertsPage";
 
 import Layouts from "../template/MainLayouts";
 import GuestPage from "../pages/middleware/GuestPage";
@@ -44,6 +47,9 @@ export const router = createBrowserRouter([
                     { path: "books/lendings", element: <Lendings /> },
                     { path: "books/lendings/history", element: <LendingsHistory /> },
                     { path: "books/restorations", element: <Restoratiosn /> },
+                    { path: "profile", element: <Profile /> },
+                    { path: "settings", element: <Setting /> },
+                    { path: "alerts", element: <Alert /> },
                     // {
                     //     path: 'admin',
                     //     element: <AdminRoute />,
