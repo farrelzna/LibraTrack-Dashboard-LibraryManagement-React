@@ -531,6 +531,92 @@ const Lendings = () => {
         setCurrentPage(1);
     }, [searchQuery, dataPeminjaman, books, members, filterStatus]);
 
+    // Add chartOptions state
+    const [chartOptions, setChartOptions] = useState({
+        chart: {
+            type: 'area',
+            height: 350,
+            toolbar: {
+                show: true,
+                tools: {
+                    download: true,
+                    selection: false,
+                    zoom: false,
+                    zoomin: false,
+                    zoomout: false,
+                    pan: false,
+                    reset: false
+                }
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        colors: ['#3B82F6'],
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.7,
+                opacityTo: 0.2,
+                stops: [0, 90, 100]
+            }
+        },
+        xaxis: {
+            categories: [],
+            labels: {
+                style: {
+                    colors: '#64748b',
+                    fontSize: '12px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    fontWeight: 400
+                }
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Number of Books',
+                style: {
+                    color: '#64748b',
+                    fontSize: '14px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    fontWeight: 500
+                }
+            },
+            labels: {
+                style: {
+                    colors: '#64748b',
+                    fontSize: '12px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    fontWeight: 400
+                }
+            }
+        },
+        tooltip: {
+            x: {
+                format: 'MMM yyyy'
+            }
+        },
+        grid: {
+            borderColor: '#e2e8f0',
+            strokeDashArray: 4,
+            xaxis: {
+                lines: {
+                    show: true
+                }
+            },
+            yaxis: {
+                lines: {
+                    show: true
+                }
+            }
+        }
+    });
+
     const [chartData, setChartData] = useState({
         series: [{
             name: 'Books Borrowed',
@@ -539,14 +625,15 @@ const Lendings = () => {
         categories: []
     });
 
+    // Add useEffect to process monthly borrowing data
     useEffect(() => {
-        if (!lendingData || lendingData.length === 0) return;
+        if (!dataPeminjaman || dataPeminjaman.length === 0) return;
 
         // Process data to get monthly borrowing counts
         const processMonthlyData = () => {
             // Get the last 12 months
             const last12Months = [];
-            const monthlyData = [];
+            const monthlyData = {};
 
             // Generate last 12 months in format 'MMM YYYY'
             for (let i = 11; i >= 0; i--) {
@@ -557,20 +644,21 @@ const Lendings = () => {
             }
 
             // Count borrowings for each month
-            lendingData.forEach(lending => {
+            dataPeminjaman.forEach(lending => {
                 const borrowDate = moment(lending.tgl_pinjam);
                 // Only consider data from the last 12 months
                 if (borrowDate.isAfter(moment().subtract(12, 'months'))) {
                     const monthKey = borrowDate.format('MMM YYYY');
-                    if (monthlyData[monthKey] !== undefined) {
+                    if (monthlyData.hasOwnProperty(monthKey)) {
                         monthlyData[monthKey]++;
                     }
                 }
             });
 
-            // Convert to arrays for ApexCharts
+            // Convert to series data format
             const seriesData = last12Months.map(month => monthlyData[month] || 0);
 
+            // Update chart data
             setChartData({
                 series: [{
                     name: 'Books Borrowed',
@@ -578,91 +666,19 @@ const Lendings = () => {
                 }],
                 categories: last12Months
             });
+
+            // Update chart options with new categories
+            setChartOptions(prevOptions => ({
+                ...prevOptions,
+                xaxis: {
+                    ...prevOptions.xaxis,
+                    categories: last12Months
+                }
+            }));
         };
 
         processMonthlyData();
-    }, [lendingData]);
-
-    const chartOptions = {
-        chart: {
-            type: 'area',
-            height: 350,
-            zoom: {
-                enabled: false
-            },
-            toolbar: {
-                show: false
-            }
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: 'smooth',
-            width: 3
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.7,
-                opacityTo: 0.3,
-                stops: [0, 90, 100]
-            }
-        },
-        xaxis: {
-            categories: chartData.categories,
-            labels: {
-                style: {
-                    fontSize: '10px'
-                }
-            }
-        },
-        yaxis: {
-            title: {
-                text: 'Number of Books'
-            },
-            min: 0,
-            forceNiceScale: true,
-            labels: {
-                formatter: (val) => Math.round(val)
-            }
-        },
-        colors: ['#4f46e5'],
-        tooltip: {
-            y: {
-                formatter: (val) => `${val} books`
-            }
-        },
-        title: {
-            text: 'Monthly Book Borrowings',
-            align: 'left',
-            style: {
-                fontSize: '16px',
-                fontWeight: 'bold'
-            }
-        },
-        subtitle: {
-            text: 'Last 12 months',
-            align: 'left',
-            style: {
-                fontSize: '12px',
-                color: '#9ca3af'
-            }
-        },
-        grid: {
-            borderColor: '#f3f4f6',
-            row: {
-                colors: ['#ffffff', '#f9fafb']
-            }
-        },
-        markers: {
-            size: 5,
-            hover: {
-                size: 7
-            }
-        }
-    };
+    }, [dataPeminjaman]);
 
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
