@@ -18,7 +18,7 @@ const FloatingPillNavbar = () => {
     },
     {
       label: "Alerts",
-      path: "/alerts",
+      path: "/notifications",
       icon: <Bell size={20} />,
     },
     {
@@ -36,7 +36,7 @@ const FloatingPillNavbar = () => {
             key={index}
             type="button"
             onClick={() => navigate(item.path)}
-            className="relative group flex flex-col items-center justify-center text-gray-600 hover:text-blue-400 transition-colors duration-300 ease-in-out"
+            className="relative group flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition-colors duration-300 ease-in-out"
           >
             <div className="transition-transform duration-200 group-hover:scale-125">
               {item.icon}

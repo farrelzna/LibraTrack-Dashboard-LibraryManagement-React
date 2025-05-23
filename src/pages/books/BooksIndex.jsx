@@ -54,6 +54,7 @@ export default function BooksIndex() {
     const [view, setView] = useState('grid');
     const [selectedRows, setSelectedRows] = useState([]);
     const [pageSize, setPageSize] = useState(10);
+    const [current, setCurrent] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [exportLoading, setExportLoading] = useState(false);
@@ -716,6 +717,25 @@ export default function BooksIndex() {
         }
     };
 
+    const images = [
+        '/src/assets/img/1.jpg',
+        '/src/assets/img/2.jpg',
+        '/src/assets/img/3.jpg',
+        '/src/assets/img/image.png',
+    ];
+
+    const nextSlide = () => {
+        setCurrent((prev) => (prev + 1) % images.length);
+    };
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            nextSlide();
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
+
     return (
         <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
             {showAlert && (
@@ -732,7 +752,7 @@ export default function BooksIndex() {
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-white rounded-xl shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
@@ -746,6 +766,28 @@ export default function BooksIndex() {
                         </div>
                     </div>
                     <p className="text-xs text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
+                </div>
+                <div className="relative w-full h-30 rounded-xl overflow-hidden">
+                    {/* Slides */}
+                    <div className="relative h-56 md:h-96">
+                        {images.map((img, index) => (
+                            <div
+                                key={index}
+                                className={`absolute inset-0 transition-opacity duration-700 ${index === current ? 'opacity-100' : 'opacity-0'
+                                    }`}
+                            >
+                                <img
+                                    src={img}
+                                    alt={`Slide ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ))}
+                        <div className="absolute left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                            <h3 className="text-white text-3xl font-bold">Library System</h3>
+                            <p className="text-white/80 mt-2 text-lg">Modern Library Management System</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { API_URL } from "../../src/constant";
+import { API_URL } from "../constant";
 
 const AlertPage = () => {
   const [recentActivities, setRecentActivities] = useState([]);

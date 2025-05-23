@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('about');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -54,7 +55,7 @@ const Dashboard = () => {
         const totalMembers = members.length;
         const totalBooks = books.length;
         const totalLendings = lendings.length;
-        const totalReturned = lendings.filter(l => l.status_pengembalian === 1).length;1
+        const totalReturned = lendings.filter(l => l.status_pengembalian === 1).length; 1
         const totalFines = fines.length;
 
         // update state dashboard
@@ -121,7 +122,7 @@ const Dashboard = () => {
             };
           })
           .sort((a, b) => new Date(b.time) - new Date(a.time)) // sort descending by time
-          .slice(0, 10); // ambil 10 aktivitas terbaru
+          .slice(0, 5);
 
         setRecentActivities(formattedActivities);
 
@@ -256,7 +257,7 @@ const Dashboard = () => {
       iconColor: "text-teal-500",
     },
   ];
-  
+
 
   const chartOptions = {
     chart: {
@@ -431,6 +432,106 @@ const Dashboard = () => {
           )}
         </div>
       )}
+
+      <div className="w-full bg-white border border-gray-200 rounded-lg mt-6 shadow-sm">
+        {/* Tabs */}
+        <div className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 rounded-t-lg bg-gray-50">
+          {['about', 'services', 'statistics'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`inline-block p-4 rounded-t-lg ${activeTab === tab
+                ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:to-blue-600 transition-colors duration-300'
+                : 'hover:text-gray-600 hover:bg-gray-100'
+                }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Contents */}
+        <div className="p-4 md:p-8 bg-white rounded-lg">
+          {activeTab === 'about' && (
+            <div>
+              <h2 className="mb-3 text-3xl font-bold tracking-tight text-gray-900">
+                Improving Literacy in Thousands of Schools & Communities
+              </h2>
+              <p className="mb-3 text-gray-500">
+                Our library provides quick access to thousands of books and digital reference collections, helping students, faculty and the general public to continue to grow and learn for life.
+              </p>
+              <a
+                href="#"
+                className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800"
+              >
+                Learn more
+                <svg
+                  className="w-2.5 h-2.5 ml-2 rtl:rotate-180"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 6 10"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m1 9 4-4-4-4"
+                  />
+                </svg>
+              </a>
+            </div>
+          )}
+
+          {activeTab === 'services' && (
+            <div>
+              <h2 className="mb-5 text-2xl font-bold tracking-tight text-gray-900">
+                Our Library Services
+              </h2>
+              <ul className="space-y-4 text-gray-500">
+                {[
+                  'Borrowing and returning digital and physical books',
+                  'Collection search with smart catalog system',
+                  'Online book reservation and booking service',
+                  'Borrowing history and automatic fine report',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <svg
+                      className="shrink-0 w-3.5 h-3.5 text-blue-600"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+                    </svg>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {activeTab === 'statistics' && (
+            <dl className="grid grid-cols-2 gap-8 text-gray-900 sm:grid-cols-3 xl:grid-cols-6">
+              {[
+                { title: '50K+', desc: 'Book available' },
+                { title: '10K+', desc: 'Active member' },
+                { title: '1.2K+', desc: 'Borrowing per month' },
+                { title: '500+', desc: 'E-Book collection' },
+                { title: '95%', desc: 'On-time return rate' },
+                { title: '24/7', desc: 'Online catalog access' },
+              ].map(({ title, desc }, i) => (
+                <div key={i} className="flex flex-col">
+                  <dt className="mb-2 text-3xl font-bold">{title}</dt>
+                  <dd className="text-gray-500">{desc}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 };

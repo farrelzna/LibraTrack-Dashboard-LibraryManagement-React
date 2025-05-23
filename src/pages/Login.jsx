@@ -118,11 +118,11 @@ export default function Login() {
                 <div className="grid grid-cols-1 md:grid-cols-2">
                     <div className="relative hidden md:block h-full min-h-[600px]">
                         <img
-                            src="/src/assets/image.png"
+                            src="/src/assets/img/1.jpg"
                             alt="Library"
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/30 to-black/50 backdrop-blur-[2px]"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/30 to-black/10"></div>
                         <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent">
                             <h3 className="text-white text-3xl font-bold">Library System</h3>
                             <p className="text-white/80 mt-2 text-lg">Modern Library Management System</p>
