@@ -436,7 +436,7 @@ const Restorations = () => {
                 defect: 0,
                 late: 0,
                 other: 0,
-                
+
                 totalCount: 0,
                 defectCount: 0,
                 lateCount: 0,
@@ -484,16 +484,16 @@ const Restorations = () => {
 
 
     return (
-        <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
+        <div className="min-h-screen">
             {/* Header Section */}
-            <div className="mb-8">
+            <div className="bg-white rounded-xl shadow-xs p-10">
                 <h1 className="text-2xl text-gray-800">Fine's Management</h1>
                 <p className="mt-2 text-xs text-gray-600">Manage library fines and penalties</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">
                 {/* Form Section */}
-                <div className="bg-white rounded-xl shadow">
+                <div className="bg-white rounded-xl shadow-xs">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Add Fine</h2>
                         <div className="space-y-4">
@@ -584,7 +584,7 @@ const Restorations = () => {
                 </div>
 
                 {/* Guidelines Section */}
-                <div className="bg-white rounded-xl shadow">
+                <div className="bg-white rounded-xl shadow-xs">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Guidelines</h2>
                         <ul className="space-y-3">
@@ -618,29 +618,33 @@ const Restorations = () => {
                             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors duration-300 justify-center p-4 shadow-sm">
                                 <div className='mb-2'>
                                     <p className="text-xs text-white">Total Amount</p>
-                                    <p className="text-xs font-bold text-white">
-                                    {formatRupiah(totalStats.total)}
+                                    <p className="text-xl font-semibold text-white truncate w-30">
+                                        {formatRupiah(totalStats.total)}
                                     </p>
                                 </div>
                                 <div className='text-end'>
                                     <p className="text-xs text-white">Defect</p>
-                                    <p className="text-xs font-bold text-white">
-                                    {formatRupiah(totalStats.defect)} <span className="text-sm ml-1">({totalStats.defectCount})</span>
-                                    </p>
+                                    <div className='flex justify-end'>
+                                        <p className="text-sm font-semibold text-white truncate w-30">
+                                            <span className="text-xm ml-1">{totalStats.defectCount}</span> - {formatRupiah(totalStats.defect)}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                             <div className="bg-white p-4 rounded-lg shadow-sm">
                                 <div className='mb-2'>
                                     <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Late</p>
-                                    <p className="text-xs font-bold text-blue-700 hover:text-blue-500 duration-300">
-                                        {formatRupiah(totalStats.late)} <span className="text-sm ml-1">({totalStats.lateCount})</span>
+                                    <p className="text-sm font-semibold text-blue-700 hover:text-blue-500 duration-300 truncate w-30">
+                                        <span className="text-xl ml-1">{totalStats.lateCount}</span> - {formatRupiah(totalStats.late)}
                                     </p>
                                 </div>
                                 <div className='text-end'>
                                     <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Other</p>
-                                    <p className="text-xs font-bold text-blue-700 hover:text-blue   -500 duration-300">
-                                        {formatRupiah(totalStats.other)} <span className="text-sm ml-1">({totalStats.otherCount})</span>
-                                    </p>
+                                    <div className='flex justify-end'>
+                                        <p className="text-sm font-semibold text-blue-700 hover:text-blue-500 duration-300 truncate text-end w-30">
+                                            <span className="text-xl ml-1">{totalStats.otherCount}</span> - {formatRupiah(totalStats.other)}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -649,7 +653,7 @@ const Restorations = () => {
             </div>
 
             {/* Table Section */}
-            <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="bg-white rounded-xl shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div>
                         <h2 className="text-sm font-semibold text-gray-800">Fine List</h2>
@@ -710,7 +714,7 @@ const Restorations = () => {
                                 onClick={() => setFilterStatus('all')}
                                 className={`px-6 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'all'
                                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 All
@@ -718,8 +722,8 @@ const Restorations = () => {
                             <button
                                 onClick={() => setFilterStatus('active')}
                                 className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'active'
-                                    ? 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-400'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 Defect
@@ -727,8 +731,8 @@ const Restorations = () => {
                             <button
                                 onClick={() => setFilterStatus('late')}
                                 className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'late'
-                                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-500'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 Late
@@ -736,8 +740,8 @@ const Restorations = () => {
                             <button
                                 onClick={() => setFilterStatus('returned')}
                                 className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'returned'
-                                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-500'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 Other

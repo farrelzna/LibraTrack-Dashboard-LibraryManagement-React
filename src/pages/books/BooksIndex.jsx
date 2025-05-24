@@ -379,7 +379,7 @@ export default function BooksIndex() {
 
     const GridView = ({ books, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows }) => {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 p-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 p-5 gap-6">
                 {books.map((book) => (
                     <div key={book.id} className="relative group">
                         {/* Checkbox for selection - positioned top right */}
@@ -399,7 +399,7 @@ export default function BooksIndex() {
                         </div>
 
                         {/* Book Card */}
-                        <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden h-full flex flex-col">
+                        <div className="bg-white rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 overflow-hidden h-full flex flex-col">
                             {/* Book Cover */}
                             <div className="relative h-64 bg-gradient-to-br from-blue-600 to-blue-700 p-4 flex items-center justify-center">
                                 {/* Overlay for dim background */}
@@ -498,7 +498,7 @@ export default function BooksIndex() {
 
     const TableView = ({ books, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows, sortConfig, requestSort }) => {
         return (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -737,7 +737,7 @@ export default function BooksIndex() {
 
 
     return (
-        <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
+        <div className="min-h-screen">
             {showAlert && (
                 <Alert
                     type={alertConfig.type}
@@ -746,14 +746,14 @@ export default function BooksIndex() {
                 />
             )}
             {/* Header Section */}
-            <div className="mb-8">
+            <div className="bg-white rounded-xl shadow-xs p-10">
                 <h1 className="text-2xl text-gray-800 tracking-tight">Book's Management</h1>
                 <p className="mt-2 text-xs text-gray-600">Manage your library's book collection</p>
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white rounded-xl shadow p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 my-10 gap-6">
+                <div className="bg-white rounded-xl shadow-xs p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs text-gray-600">Total Books</p>
@@ -792,7 +792,7 @@ export default function BooksIndex() {
             </div>
 
             {/* Action Bar */}
-            <div className="bg-white rounded-xl shadow">
+            <div className="bg-white rounded-xl shadow-xs my-10">
                 <div className="flex flex-wrap items-center p-4 justify-between gap-4">
                     <div className="flex-1 min-w-[60px] max-w-md">
                         <div className="relative">
@@ -925,90 +925,90 @@ export default function BooksIndex() {
                         setSelectedRows={setSelectedRows}
                     />
                 )}
-            </div>
 
-            <div className="mt-6 border-t border-gray-200 pt-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-700">Show</span>
-                        <select
-                            value={pageSize}
-                            onChange={handlePageSizeChange}
-                            className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
-                        <span className="text-xs text-gray-700">Entries</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <div className="text-xs text-gray-700">
-                            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredBooks.length)} of {filteredBooks.length} entries
+                <div className="px-6 py-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-700">Show</span>
+                            <select
+                                value={pageSize}
+                                onChange={handlePageSizeChange}
+                                className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span className="text-xs text-gray-700">Entries</span>
                         </div>
 
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => handlePageChange(1)}
-                                disabled={currentPage === 1}
-                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <button
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-
-                            {/* Page Numbers */}
-                            <div className="flex items-center gap-1">
-                                {[...Array(Math.min(5, Math.ceil(filteredBooks.length / pageSize)))].map((_, index) => {
-                                    const pageNumber = index + 1;
-                                    return (
-                                        <button
-                                            key={pageNumber}
-                                            onClick={() => handlePageChange(pageNumber)}
-                                            className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-white border border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            {pageNumber}
-                                        </button>
-                                    );
-                                })}
-                                {Math.ceil(filteredBooks.length / pageSize) > 5 && (
-                                    <span className="px-2 text-gray-500">...</span>
-                                )}
+                        <div className="flex items-center gap-2">
+                            <div className="text-xs text-gray-700">
+                                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredBooks.length)} of {filteredBooks.length} entries
                             </div>
 
-                            <button
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
-                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                </svg>
-                            </button>
-                            <button
-                                onClick={() => handlePageChange(Math.ceil(filteredBooks.length / pageSize))}
-                                disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
-                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                                </svg>
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => handlePageChange(1)}
+                                    disabled={currentPage === 1}
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+
+                                {/* Page Numbers */}
+                                <div className="flex items-center gap-1">
+                                    {[...Array(Math.min(5, Math.ceil(filteredBooks.length / pageSize)))].map((_, index) => {
+                                        const pageNumber = index + 1;
+                                        return (
+                                            <button
+                                                key={pageNumber}
+                                                onClick={() => handlePageChange(pageNumber)}
+                                                className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-white border border-gray-300 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                {pageNumber}
+                                            </button>
+                                        );
+                                    })}
+                                    {Math.ceil(filteredBooks.length / pageSize) > 5 && (
+                                        <span className="px-2 text-gray-500">...</span>
+                                    )}
+                                </div>
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={() => handlePageChange(Math.ceil(filteredBooks.length / pageSize))}
+                                    disabled={currentPage >= Math.ceil(filteredBooks.length / pageSize)}
+                                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

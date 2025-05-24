@@ -12,14 +12,14 @@ const FloatingPillNavbar = () => {
       icon: <Home size={20} />,
     },
     {
-      label: "Profile",
-      path: "/profile",
-      icon: <Users size={20} />,
-    },
-    {
       label: "Alerts",
       path: "/notifications",
       icon: <Bell size={20} />,
+    },
+    {
+      label: "Profile",
+      path: "/profile",
+      icon: <Users size={20} />,
     },
     {
       label: "Settings",

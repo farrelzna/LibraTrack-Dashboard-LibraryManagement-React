@@ -25,6 +25,7 @@ const Lendings = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [showExportDropdown, setShowExportDropdown] = useState(false);
     const [filterStatus, setFilterStatus] = useState('all');
+    const [isOpen, setIsOpen] = useState(true);
     const [sortConfig, setSortConfig] = useState({
         key: null,
         direction: 'asc'
@@ -123,10 +124,6 @@ const Lendings = () => {
 
     const handleSearch = (e) => {
         setSearchQuery(e.target.value);
-    };
-
-    const handleClearSearch = () => {
-        setSearchQuery('');
     };
     //     if (!searchQuery.trim()) {
     //         setFilteredData(dataPeminjaman);
@@ -538,6 +535,7 @@ const Lendings = () => {
             height: 350,
             toolbar: {
                 show: true,
+                right: 0,
                 tools: {
                     download: true,
                     selection: false,
@@ -681,16 +679,16 @@ const Lendings = () => {
     }, [dataPeminjaman]);
 
     return (
-        <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
+        <div className="min-h-screen">
             {/* Header Section */}
-            <div className="mb-8">
+            <div className="mb-10 bg-white rounded-xl shadow-xs p-10">
                 <h1 className="text-2xl text-gray-800">Book's Lending</h1>
                 <p className="mt-2 text-xs text-gray-600">Manage library book lending</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Form Section */}
-                <div className="bg-white rounded-xl shadow">
+                <div className="bg-white rounded-xl shadow-xs">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Lending Form</h2>
                         <form className="space-y-4">
@@ -756,7 +754,7 @@ const Lendings = () => {
                         </form>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl shadow">
+                <div className="bg-white rounded-xl shadow-xs">
                     <div className="p-6">
                         <h2 className="text-sm font-semibold text-gray-800 mb-4">Guidelines</h2>
                         <ul className="space-y-3">
@@ -790,13 +788,13 @@ const Lendings = () => {
                             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors duration-300 justify-center p-4 shadow-sm">
                                 <div className='mb-2'>
                                     <p className="text-xs text-white">Total Records</p>
-                                    <p className="text-xl font-bold text-white">
+                                    <p className="text-xl font-semibold text-white">
                                         {filteredData.length}
                                     </p>
                                 </div>
                                 <div className='text-end'>
                                     <p className="text-xs text-white">Active Loans</p>
-                                    <p className="text-xl font-bold text-white">
+                                    <p className="text-xl font-semibold text-white">
                                         {dataPeminjaman.filter(item => !item.status_pengembalian).length}
                                     </p>
                                 </div>
@@ -804,7 +802,7 @@ const Lendings = () => {
                             <div className="bg-white p-4 rounded-lg shadow-sm">
                                 <div className='mb-2'>
                                     <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Overdue</p>
-                                    <p className="text-xl font-bold text-blue-700 hover:text-blue-500 duration-300">
+                                    <p className="text-xl font-semibold text-blue-700 hover:text-blue-500 duration-300">
                                         {dataPeminjaman.filter(item =>
                                             !item.status_pengembalian &&
                                             moment().isAfter(moment(item.tgl_pengembalian))
@@ -813,7 +811,7 @@ const Lendings = () => {
                                 </div>
                                 <div className='text-end'>
                                     <p className="text-xs text-blue-600 hover:text-blue-400 duration-300">Returned</p>
-                                    <p className="text-xl font-bold text-blue-700 hover:text-blue-500 duration-300">
+                                    <p className="text-xl font-semibold text-blue-700 hover:text-blue-500 duration-300">
                                         {dataPeminjaman.filter(item =>
                                             !item.status_pengembalian &&
                                             moment().isAfter(moment(item.tgl_pengembalian))
@@ -826,9 +824,43 @@ const Lendings = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow mb-8">
-                <div className="p-6">
-                    <h2 className="text-sm font-semibold text-gray-800 mb-4">Monthly Borrowing Statistics</h2>
+            <div className='my-10 bg-white rounded-xl shadow-xs p-10'>
+                <div
+                    className="flex items-center justify-between cursor-pointer select-none"
+                    onClick={() => setIsOpen(!isOpen)}
+                >
+                    <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300">Monthly Borrowing Statistics</h2>
+                    <button
+                        aria-label={isOpen ? "Collapse recent activities" : "Expand recent activities"}
+                        className="text-gray-500 focus:outline-none"
+                    >
+                        {/* Icon panah bawah/atas */}
+                        {isOpen ? (
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6 transform rotate-180"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        ) : (
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        )}
+                    </button>
+                </div>
+                {isOpen && (
                     <div className="h-80">
                         <Chart
                             options={chartOptions}
@@ -837,10 +869,10 @@ const Lendings = () => {
                             height="100%"
                         />
                     </div>
-                </div>
+                )}
             </div>
 
-            <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="bg-white rounded-xl shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div>
                         <h2 className="text-sm font-semibold text-gray-800">Lending List</h2>
@@ -901,7 +933,7 @@ const Lendings = () => {
                                 onClick={() => setFilterStatus('all')}
                                 className={`px-6 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'all'
                                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 All
@@ -909,8 +941,8 @@ const Lendings = () => {
                             <button
                                 onClick={() => setFilterStatus('active')}
                                 className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'active'
-                                    ? 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-400'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 Active
@@ -918,8 +950,8 @@ const Lendings = () => {
                             <button
                                 onClick={() => setFilterStatus('late')}
                                 className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'late'
-                                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-500'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 Late
@@ -927,8 +959,8 @@ const Lendings = () => {
                             <button
                                 onClick={() => setFilterStatus('returned')}
                                 className={`px-4 py-2 w-full text-xs rounded-full transition-colors duration-300 ${filterStatus === 'returned'
-                                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-500'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-600'
+                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-blue-700 hover:to-blue-600 hover:text-white'
                                     }`}
                             >
                                 Returned

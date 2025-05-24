@@ -18,6 +18,7 @@ const MemberHistory = () => {
     const [pageSize, setPageSize] = useState(9);
     const [filteredMembers, setFilteredMembers] = useState([]);
     const [groupedLendings, setGroupedLendings] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Calculate pagination values
     const indexOfLastItem = currentPage * pageSize;
@@ -26,9 +27,19 @@ const MemberHistory = () => {
     const totalPages = Math.ceil(filteredMembers.length / pageSize);
 
     // Set filtered data when lending data changes
+    // Set filtered data when lending data changes or search query changes
     useEffect(() => {
-        setFilteredMembers(groupedLendings);
-    }, [groupedLendings]);
+        if (searchQuery.trim() === "") {
+            setFilteredMembers(groupedLendings);
+        } else {
+            const filtered = groupedLendings.filter(member =>
+                (member.memberName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                (member.memberNumberID?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+            );
+            setFilteredMembers(filtered);
+        }
+        setCurrentPage(1); // Reset to first page when search changes
+    }, [groupedLendings, searchQuery]);
 
     // Function to handle page changes
     const handlePageChange = (pageNumber) => {
@@ -178,9 +189,12 @@ const MemberHistory = () => {
             y += 8;
         } else {
             selectedLending.lendings.forEach((lend, index) => {
-                const fineText = lend.totalFines > 0 ? `Rp${lend.totalFines.toFixed(0)}` : "-";
+                const fineText = lend.totalFines && lend.totalFines > 0
+                    ? formatRupiah(lend.totalFines)
+                    : "-";
 
-                let status = "-";
+
+                let status = "  -";
                 if (lend.status === 'dikembalikan') status = "Returned";
                 else if (lend.status === 'belum dikembalikan') status = "Borrowed";
                 else if (lend.status === 'terlambat') status = "Overdue";
@@ -202,8 +216,8 @@ const MemberHistory = () => {
             });
         }
 
-        console.log('selectedLending:', selectedLending.lendings); // Log selectedLending detai
-        
+        // console.log('selectedLending:', selectedLending.lendings); // Log selectedLending detai
+
 
         y += 5;
         doc.setDrawColor(150);
@@ -217,9 +231,18 @@ const MemberHistory = () => {
         doc.save(`report_${selectedLending.memberName.replace(/\s+/g, '_')}.pdf`);
     };
 
-    // const uniqueBookTitles = selectedLending && selectedLending.borrowHistory
-    //     ? [...new Set(selectedLending.borrowHistory.map(borrow => borrow.bookTitle))]
-    //     : [];
+    const formatRupiah = (amount) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
 
     if (loading) {
         return (
@@ -266,6 +289,23 @@ const MemberHistory = () => {
 
                     {/* Content Section */}
                     <div className="p-8">
+                        {/* Search Bar */}
+                        <div className="mb-6">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="text"
+                                    className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Search by member name or ID..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                />
+                            </div>
+                        </div>
                         {lendingData.length === 0 ? (
                             <div className="text-center py-12">
                                 <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,8 +314,8 @@ const MemberHistory = () => {
                                 <p className="text-xl text-gray-500 font-medium">No lending records available</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                                {groupedLendings.map((memberGroup, index) => {
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-8">
+                                {currentMembers.map((memberGroup, index) => {
                                     const memberLendings = memberGroup.lendings;
                                     // const memberLendings = lendingData.filter(l => l.id_member === lending.id_member);
                                     const memberStats = {
@@ -512,8 +552,16 @@ const MemberHistory = () => {
                                 <p className="font-medium text-gray-900">#{selectedLending.memberID}</p>
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Export To</p>                                
-                                <a href="" onClick={handleExportByMember} className='text-red-400 hover:text-red-700 underline'>PDF</a>
+                                <p className="text-xs text-gray-500">Export To</p>
+                                <a
+                                    onClick={handleExportByMember}
+                                    className='text-red-400 hover:text-rose-700 flex items-center gap-1'>
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11v6m-3-3h6" />
+                                    </svg>
+                                    PDF
+                                </a>
                             </div>
                         </div>
 
@@ -559,7 +607,7 @@ const MemberHistory = () => {
                                                         : moment().isAfter(moment(borrow.tgl_pengembalian))
                                                             ? 'bg-red-100 text-red-800'
                                                             : 'bg-blue-100 text-blue-800'
-                                                        }`} style={{ width:'70px' }}>
+                                                        }`} style={{ width: '70px' }}>
                                                         {borrow.status_pengembalian
                                                             ? 'Returned'
                                                             : moment().isAfter(moment(borrow.tgl_pengembalian))
@@ -570,7 +618,7 @@ const MemberHistory = () => {
                                                 </div>
                                                 {borrow.fines.length > 0 && (
                                                     <p className="mt-1 text-xs text-red-600">
-                                                        Fines: ${borrow.totalFines.toFixed(2)}
+                                                        Fines: {formatRupiah(borrow.totalFines)}
                                                     </p>
                                                 )}
                                             </div>
@@ -610,7 +658,7 @@ const MemberHistory = () => {
                                     <div className="flex justify-between items-center p-3 border-t border-gray-100 bg-gray-50 rounded-b-lg">
                                         <span className="font-semibold">Total Fines</span>
                                         <span className="text-red-600 font-semibold">
-                                            Rp.{selectedLending.totalFines.toFixed(2)}
+                                            {formatRupiah(selectedLending.totalFines)}
                                         </span>
                                     </div>
                                 </div>
@@ -619,7 +667,7 @@ const MemberHistory = () => {
                     </div>
                 )}
             </Modal>
-        </div>
+        </div >
     );
 };
 

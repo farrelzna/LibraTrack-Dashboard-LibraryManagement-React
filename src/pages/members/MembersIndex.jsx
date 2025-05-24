@@ -375,7 +375,7 @@ export default function MemberManagement() {
 
               <div className="p-6 relative">
                 <div className="relative">
-                  <h3 className="text-sm font-semibold text-white text-right absolute top-0 right-0 truncate w-[10rem] leading-tight" title={member.nama}>
+                  <h3 className="text-xs font-semibold text-white text-right absolute top-0 right-0 truncate w-[10rem] leading-tight" title={member.nama}>
                     {member.nama}
                   </h3>
                 </div>
@@ -409,6 +409,12 @@ export default function MemberManagement() {
 
                 {/* Member Details */}
                 <div className="space-y-3">
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                    <span className="text-xs">{member.nama}</span>
+                  </div>
                   <div className="flex items-center space-x-2 text-gray-600">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -466,7 +472,7 @@ export default function MemberManagement() {
 
   const TableView = ({ members, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows, sortConfig, requestSort }) => {
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -663,7 +669,7 @@ export default function MemberManagement() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
+    <div className="min-h-screen">
       {showAlert && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <Alert
@@ -683,15 +689,17 @@ export default function MemberManagement() {
         </div>
       )}
       {/* Header Section */}
-      <div className="mb-8">
+      <div className="mb-8 p-10 bg-white rounded-xl shadow-xs h-35">
         <h1 className="text-2xl text-gray-800 tracking-tight">Member's Management</h1>
-        <p className="mt-2 text-xs text-gray-600">Manage your library member account</p>
+        <p className="text-xs text-gray-700 z-10">
+          Manage your library member account
+        </p>
       </div>
 
       <div className="mx-auto">
         {/* Header Section with Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-xl shadow p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl shadow-xs p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-600">Total Members</p>
@@ -731,7 +739,7 @@ export default function MemberManagement() {
         </div>
 
         {/* Action Bar */}
-        <div className="bg-white rounded-xl shadow">
+        <div className="bg-white rounded-xl shadow-xs my-10">
           <div className="flex flex-wrap items-center p-4 justify-between gap-4">
             <div className="flex-1 min-w-[60px] max-w-md">
               <div className="relative">
@@ -885,90 +893,90 @@ export default function MemberManagement() {
               setSelectedRows={setSelectedRows}
             />
           )}
-        </div>
 
-        <div className="mt-6 border-t border-gray-200 pt-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-700">Show</span>
-              <select
-                value={pageSize}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-              </select>
-              <span className="text-xs text-gray-700">Entries</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="text-xs text-gray-700">
-                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredMembers.length)} of {filteredMembers.length} entries
+          <div className="px-6 py-4 border-t border-gray-200 pt-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-700">Show</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span className="text-xs text-gray-700">Entries</span>
               </div>
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setCurrentPage(1)}
-                  disabled={currentPage === 1}
-                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-
-                {/* Page Numbers */}
-                <div className="flex items-center gap-1">
-                  {[...Array(Math.min(5, Math.ceil(filteredMembers.length / pageSize)))].map((_, index) => {
-                    const pageNumber = index + 1;
-                    return (
-                      <button
-                        key={pageNumber}
-                        onClick={() => setCurrentPage(pageNumber)}
-                        className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white border border-gray-300 hover:bg-gray-50'
-                          }`}
-                      >
-                        {pageNumber}
-                      </button>
-                    );
-                  })}
-                  {Math.ceil(filteredMembers.length / pageSize) > 5 && (
-                    <span className="px-2 text-gray-500">...</span>
-                  )}
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-gray-700">
+                  Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredMembers.length)} of {filteredMembers.length} entries
                 </div>
 
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredMembers.length / pageSize)))}
-                  disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
-                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setCurrentPage(Math.ceil(filteredMembers.length / pageSize))}
-                  disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
-                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                  </svg>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1">
+                    {[...Array(Math.min(5, Math.ceil(filteredMembers.length / pageSize)))].map((_, index) => {
+                      const pageNumber = index + 1;
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => setCurrentPage(pageNumber)}
+                          className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    })}
+                    {Math.ceil(filteredMembers.length / pageSize) > 5 && (
+                      <span className="px-2 text-gray-500">...</span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredMembers.length / pageSize)))}
+                    disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
+                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(Math.ceil(filteredMembers.length / pageSize))}
+                    disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
+                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Chart from "react-apexcharts";
+import { motion } from "framer-motion";
 import { API_URL } from "../../src/constant";
 
 const Dashboard = () => {
@@ -310,7 +311,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statsDisplay.map((stat, index) => (
           <div key={index} className={`${stat.bgColor} rounded-lg p-6`}>
             <div className="flex items-center justify-between">
@@ -328,18 +329,18 @@ const Dashboard = () => {
       </div>
 
       {/* Chart */}
-      <div className="">
-        <h2 className="text-xl mb-2">Library Stats</h2>
+      <div className="py-10">
+        <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300">Library Stats</h2>
         <Chart options={chartOptions} series={series} type="area" height={350} />
       </div>
 
       {/* Recent Activities */}
-      <div className="mt-6">
+      <div>
         <div
           className="flex items-center justify-between cursor-pointer select-none"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <h2 className="text-xl text-gray-800  hover:text-blue-400 transition duration-300">Recent Activities</h2>
+          <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300">Recent Activities</h2>
           <button
             aria-label={isOpen ? "Collapse recent activities" : "Expand recent activities"}
             className="text-gray-500 focus:outline-none"
@@ -433,7 +434,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="w-full bg-white border border-gray-200 rounded-lg mt-6 shadow-sm">
+      <div className="w-full bg-white rounded-lg mt-10 shadow-xs">
         {/* Tabs */}
         <div className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 rounded-t-lg bg-gray-50">
           {['about', 'services', 'statistics'].map((tab) => (
@@ -441,7 +442,7 @@ const Dashboard = () => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`inline-block p-4 rounded-t-lg ${activeTab === tab
-                ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:to-blue-600 transition-colors duration-300'
+                ? 'text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:to-blue-600 transition-colors duration-300'
                 : 'hover:text-gray-600 hover:bg-gray-100'
                 }`}
             >
@@ -454,7 +455,7 @@ const Dashboard = () => {
         <div className="p-4 md:p-8 bg-white rounded-lg">
           {activeTab === 'about' && (
             <div>
-              <h2 className="mb-3 text-3xl font-bold tracking-tight text-gray-900">
+              <h2 className="mb-3 text-3xl font-semibold tracking-tight text-gray-900">
                 Improving Literacy in Thousands of Schools & Communities
               </h2>
               <p className="mb-3 text-gray-500">
@@ -486,7 +487,7 @@ const Dashboard = () => {
 
           {activeTab === 'services' && (
             <div>
-              <h2 className="mb-5 text-2xl font-bold tracking-tight text-gray-900">
+              <h2 className="mb-5 text-2xl font-semibold tracking-tight text-gray-900">
                 Our Library Services
               </h2>
               <ul className="space-y-4 text-gray-500">
@@ -523,7 +524,7 @@ const Dashboard = () => {
                 { title: '24/7', desc: 'Online catalog access' },
               ].map(({ title, desc }, i) => (
                 <div key={i} className="flex flex-col">
-                  <dt className="mb-2 text-3xl font-bold">{title}</dt>
+                  <dt className="mb-2 text-3xl font-smeibold">{title}</dt>
                   <dd className="text-gray-500">{desc}</dd>
                 </div>
               ))}
@@ -531,7 +532,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
     </div>
   );
 };
