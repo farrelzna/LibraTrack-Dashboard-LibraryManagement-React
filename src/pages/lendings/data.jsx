@@ -253,7 +253,7 @@ const MemberHistory = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="container min-h-screen p-10">
             <div className="mx-auto">
                 <div className="bg-white rounded-2xl shadow-xs overflow-hidden">
                     <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-12">
@@ -645,7 +645,7 @@ const MemberHistory = () => {
                                                 <div key={index} className="bg-red-50 p-3 rounded-lg">
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-red-700 font-medium">
-                                                            ${parseFloat(fine.jumlah_denda).toFixed(2)}
+                                                            {formatRupiah(parseFloat(fine.jumlah_denda))}
                                                         </span>
                                                         <span className="text-xs text-red-600">
                                                             {moment(fine.created_at).format('DD MMM YYYY')}

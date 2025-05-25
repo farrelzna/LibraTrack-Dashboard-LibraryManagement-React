@@ -254,7 +254,7 @@ const ProfilePage = () => {
               <div className="col-span-2 grid grid-cols-2 gap-4 auto-rows-fr">
                 <motion.div
                   whileHover={{ y: -5 }}
-                  className="bg-white rounded-2xl p-6 flex flex-col justify-between"
+                  className="bg-white rounded-2xl p-6 flex flex-col justify-between hover:bg"
                 >
                   <h3 className="text-xs uppercase tracking-wider text-neutral-500">Books Borrowed</h3>
                   <p className="text-3xl font-light">{stats.booksBorrowed}</p>

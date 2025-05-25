@@ -669,7 +669,7 @@ export default function MemberManagement() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className=" container min-h-screen p-10">
       {showAlert && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <Alert

@@ -484,7 +484,7 @@ const Restorations = () => {
 
 
     return (
-        <div className="min-h-screen">
+        <div className="container min-h-screen p-10">
             {/* Header Section */}
             <div className="bg-white rounded-xl shadow-xs p-10">
                 <h1 className="text-2xl text-gray-800">Fine's Management</h1>

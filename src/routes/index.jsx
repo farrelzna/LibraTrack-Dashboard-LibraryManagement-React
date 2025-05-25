@@ -9,7 +9,7 @@ import Restoratiosn from "../pages/restorations/index";
 import LendingsHistory from "../pages/lendings/data";
 import Profile from "../pages/User/Profile"
 import Setting from "../pages/User/Setting";
-import Alert from "../pages/Notification";
+import Notification from "../pages/Notification";
 
 import Layouts from "../template/MainLayouts";
 import GuestPage from "../pages/middleware/GuestPage";
@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
                     { path: "books/restorations", element: <Restoratiosn /> },
                     { path: "profile", element: <Profile /> },
                     { path: "settings", element: <Setting /> },
-                    { path: "notifications", element: <Alert /> },
+                    { path: "notifications", element: <Notification /> },
                     // {
                     //     path: 'admin',
                     //     element: <AdminRoute />,

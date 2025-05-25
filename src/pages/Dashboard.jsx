@@ -31,7 +31,13 @@ const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('about');
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [popularBooks, setPopularBooks] = useState([]);
+  const [activeMemberStats, setActiveMemberStats] = useState([]);
+  const [borrowingTrends, setBorrowingTrends] = useState({
+    labels: [],
+    data: [],
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -74,6 +80,51 @@ const Dashboard = () => {
           totalReturned,
           totalFines,
         });
+
+        // Process popular books
+        const bookBorrowCounts = lendings.reduce((acc, lending) => {
+          acc[lending.id_buku] = (acc[lending.id_buku] || 0) + 1;
+          return acc;
+        }, {});
+
+        const topBooks = Object.entries(bookBorrowCounts)
+          .map(([bookId, count]) => ({
+            book: books.find(b => b.id === parseInt(bookId)),
+            count
+          }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5);
+
+        setPopularBooks(topBooks);
+
+        // Process active member stats
+        const memberBorrowCounts = lendings.reduce((acc, lending) => {
+          acc[lending.id_member] = (acc[lending.id_member] || 0) + 1;
+          return acc;
+        }, {});
+
+        const topMembers = Object.entries(memberBorrowCounts)
+          .map(([memberId, count]) => ({
+            member: members.find(m => m.id === parseInt(memberId)),
+            count
+          }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5);
+
+        setActiveMemberStats(topMembers);
+
+        // Process borrowing trends (last 6 months)
+        const last6Months = Array.from({ length: 6 }, (_, i) => {
+          const date = new Date();
+          date.setMonth(date.getMonth() - i);
+          return date.toLocaleString('default', { month: 'short' });
+        }).reverse();
+
+        const monthlyBorrows = lendings.reduce((acc, lending) => {
+          const month = new Date(lending.created_at).toLocaleString('default', { month: 'short' });
+          acc[month] = (acc[month] || 0) + 1;
+          return acc;
+        }, {});
 
         // Build recent activities (sama seperti yang sudah kamu buat)
         const activityList = [
@@ -133,6 +184,11 @@ const Dashboard = () => {
             data: [totalMembers, totalBooks, booksBorrowed, dueReturns, totalReturned, totalFines],
           },
         ]);
+
+        setBorrowingTrends({
+          labels: last6Months,
+          data: last6Months.map(month => monthlyBorrows[month] || 0)
+        });
 
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -294,245 +350,284 @@ const Dashboard = () => {
   if (error) return <p className="p-10 text-red-600">{error}</p>;
 
   return (
-    <div className="min-h-screen bg-white rounded-xl shadow-xs p-10">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl text-gray-800">Dashboard Overview</h1>
-        <p className="text-xs text-gray-500">
-          {new Date().toLocaleDateString("en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-      </div>
-      <div className="mb-8 w-140 text-justify">
-        <p className="text-xs text-gray-800">This dashboard presents a real-time summary of important data to help users monitor system activity quickly and efficiently. All key information is displayed in the form of graphs, statistics and up-to-date lists for easy management.</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {statsDisplay.map((stat, index) => (
-          <div key={index} className={`${stat.bgColor} rounded-lg p-6`}>
-            <div className="flex items-center justify-between">
-              <div className={`${stat.iconColor} rounded-full p-2`}>{stat.icon}</div>
-              <span
-                className={`${stat.textColor} text-xs font-medium px-2 py-1 rounded bg-white`}
-              >
-                Last 30 days
-              </span>
-            </div>
-            <h3 className={`text-2xl font-bold ${stat.textColor} mt-4`}>{stat.value}</h3>
-            <p className="text-gray-600 text-xs mt-1">{stat.title}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Chart */}
-      <div className="py-10">
-        <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300">Library Stats</h2>
-        <Chart options={chartOptions} series={series} type="area" height={350} />
-      </div>
-
-      {/* Recent Activities */}
-      <div>
-        <div
-          className="flex items-center justify-between cursor-pointer select-none"
-          onClick={() => setIsOpen(!isOpen)}
+    <div className="container min-h-screen p-10">
+      <div className=" bg-white rounded-xl shadow-xs p-10">
+        <motion.header
+          className={`transition-all duration-300`}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300">Recent Activities</h2>
-          <button
-            aria-label={isOpen ? "Collapse recent activities" : "Expand recent activities"}
-            className="text-gray-500 focus:outline-none"
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl text-gray-800">Dashboard Overview</h1>
+            <p className="text-xs text-gray-500">
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7 }}
           >
-            {/* Icon panah bawah/atas */}
-            {isOpen ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 transform rotate-180"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
+            <div className="mb-8 w-140 text-justify">
+              <p className="text-xs text-gray-800">This dashboard presents a real-time summary of important data to help users monitor system activity quickly and efficiently. All key information is displayed in the form of graphs, statistics and up-to-date lists for easy management.</p>
+            </div>
+          </motion.div>
+        </motion.header>
 
-      {isOpen && (
-        <div className="divide-y divide-gray-200">
-          {recentActivities.length === 0 ? (
-            <p className="text-xs text-gray-500">No recent activity.</p>
-          ) : (
-            recentActivities.map((activity, index) => (
-              <div key={index} className="py-3 ps-6 flex items-center justify-between hover:bg-gray-50">
-                <div className="flex items-center">
-                  <div
-                    className={`w-2 h-2 rounded-full mr-3 ${activity.type === "borrow"
-                      ? "bg-purple-500"
-                      : activity.type === "return"
-                        ? "bg-green-500"
-                        : activity.type === "fine"
-                          ? "bg-red-500"
-                          : activity.type === "add-book"
-                            ? "bg-blue-500"
-                            : activity.type === "new-member"
-                              ? "bg-yellow-500"
-                              : "bg-gray-400"
-                      }`}
-                  ></div>
-                  <div>
-                    <p className="text-xs text-gray-800">
-                      {activity.type === "borrow" && (
-                        <>
-                          <span className="font-medium">{activity.user}</span> borrowed{" "}
-                          <span className="font-medium">"{activity.book}"</span>
-                        </>
-                      )}
-                      {activity.type === "return" && (
-                        <>
-                          <span className="font-medium">{activity.user}</span> returned{" "}
-                          <span className="font-medium">"{activity.book}"</span>
-                        </>
-                      )}
-                      {activity.type === "fine" && (
-                        <>
-                          <span className="font-medium">{activity.user}</span> got fined
-                        </>
-                      )}
-                      {activity.type === "add-book" && (
-                        <>
-                          New book added: <span className="font-medium">"{activity.book}"</span>
-                        </>
-                      )}
-                      {activity.type === "new-member" && (
-                        <>
-                          New member registered: <span className="font-medium">{activity.user}</span>
-                        </>
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-500">{new Date(activity.time).toLocaleString()}</p>
-                  </div>
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {statsDisplay.map((stat, index) => (
+              <motion.div
+                whileHover={{ y: -10 }}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: `0.3` }}
+                key={index}
+                className={`${stat.bgColor} rounded-lg p-6`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className={`${stat.iconColor} rounded-full p-2`}>{stat.icon}</div>
+                  <span
+                    className={`${stat.textColor} text-xs font-medium px-2 py-1 rounded bg-white`}
+                  >
+                    Last 30 days
+                  </span>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+                <h3 className={`text-2xl font-bold ${stat.textColor} mt-4`}>{stat.value}</h3>
+                <p className="text-gray-600 text-xs mt-1">{stat.title}</p>
+              </motion.div>
+            ))}
+          </div>
 
-      <div className="w-full bg-white rounded-lg mt-10 shadow-xs">
-        {/* Tabs */}
-        <div className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 rounded-t-lg bg-gray-50">
-          {['about', 'services', 'statistics'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`inline-block p-4 rounded-t-lg ${activeTab === tab
-                ? 'text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:to-blue-600 transition-colors duration-300'
-                : 'hover:text-gray-600 hover:bg-gray-100'
-                }`}
+          {/* Chart */}
+          <div className="py-10">
+            <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300">Library Stats</h2>
+            <Chart options={chartOptions} series={series} type="area" height={350} />
+          </div>
+
+          {/* Recent Activities */}
+          <div className="mb-4">
+            <div
+              className="flex items-center justify-between cursor-pointer select-none"
+              onClick={() => setIsOpen(!isOpen)}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Contents */}
-        <div className="p-4 md:p-8 bg-white rounded-lg">
-          {activeTab === 'about' && (
-            <div>
-              <h2 className="mb-3 text-3xl font-semibold tracking-tight text-gray-900">
-                Improving Literacy in Thousands of Schools & Communities
-              </h2>
-              <p className="mb-3 text-gray-500">
-                Our library provides quick access to thousands of books and digital reference collections, helping students, faculty and the general public to continue to grow and learn for life.
-              </p>
-              <a
-                href="#"
-                className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800"
+              <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300">Recent Activities</h2>
+              <button
+                aria-label={isOpen ? "Collapse recent activities" : "Expand recent activities"}
+                className="text-gray-500 focus:outline-none"
               >
-                Learn more
-                <svg
-                  className="w-2.5 h-2.5 ml-2 rtl:rotate-180"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 6 10"
-                >
-                  <path
+                {/* Icon panah bawah/atas */}
+                {isOpen ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 transform rotate-180"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m1 9 4-4-4-4"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {isOpen && (
+            <div className="divide-y divide-gray-200">
+              {recentActivities.length === 0 ? (
+                <p className="text-xs text-gray-500">No recent activity.</p>
+              ) : (
+                recentActivities.map((activity, index) => (
+                  <motion.div
+                    whileHover={{ y: -3 }}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: `0.3` }}
+                    key={index}
+                    className="py-3 ps-6 flex items-center justify-between hover:bg-gray-50"
+                  >
+                    <div className="flex items-center">
+                      <div
+                        className={`w-2 h-2 rounded-full mr-3 ${activity.type === "borrow"
+                          ? "bg-purple-500"
+                          : activity.type === "return"
+                            ? "bg-green-500"
+                            : activity.type === "fine"
+                              ? "bg-red-500"
+                              : activity.type === "add-book"
+                                ? "bg-blue-500"
+                                : activity.type === "new-member"
+                                  ? "bg-yellow-500"
+                                  : "bg-gray-400"
+                          }`}
+                      ></div>
+                      <div>
+                        <p className="text-xs text-gray-800">
+                          {activity.type === "borrow" && (
+                            <>
+                              <span className="font-medium">{activity.user}</span> borrowed{" "}
+                              <span className="font-medium">"{activity.book}"</span>
+                            </>
+                          )}
+                          {activity.type === "return" && (
+                            <>
+                              <span className="font-medium">{activity.user}</span> returned{" "}
+                              <span className="font-medium">"{activity.book}"</span>
+                            </>
+                          )}
+                          {activity.type === "fine" && (
+                            <>
+                              <span className="font-medium">{activity.user}</span> got fined
+                            </>
+                          )}
+                          {activity.type === "add-book" && (
+                            <>
+                              New book added: <span className="font-medium">"{activity.book}"</span>
+                            </>
+                          )}
+                          {activity.type === "new-member" && (
+                            <>
+                              New member registered: <span className="font-medium">{activity.user}</span>
+                            </>
+                          )}
+                        </p>
+                        <p className="text-xs text-gray-500">{new Date(activity.time).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-10">
+                {/* Popular Books Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className=""
+                >
+                  <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300 mb-4">Most Borrowed Books</h2>
+                  <div className="space-y-4">
+                    {popularBooks.map((item, index) => (
+                      <motion.div
+                        whileHover={{ y: -5 }}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: `0.3` }}
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-semibold text-gray-500">{index + 1}</span>
+                          <div>
+                            <h3 className="text-xs">{item.book?.judul || 'Unknown Book'}</h3>
+                            <p className="text-xs text-gray-500">Borrowed {item.count} times</p>
+                          </div>
+                        </div>
+                        <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(item.count / popularBooks[0].count) * 100}%` }}
+                            transition={{ duration: 0.8, delay: index * 0.1 }}
+                            className="h-full bg-indigo-500"
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Active Members Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className=""
+                >
+                  <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300 mb-4">Most Active Members</h2>
+                  <div className="space-y-4">
+                    {activeMemberStats.map((item, index) => (
+                      <motion.divma
+                        whileHover={{ y: -5 }}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: `0.3` }}
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="text-lg font-semibold text-gray-500">{index + 1}</span>
+                          <div>
+                            <h3 className="text-xs">{item.member?.nama || 'Unknown Member'}</h3>
+                            <p className="text-xs text-gray-500">{item.count} books borrowed</p>
+                          </div>
+                        </div>
+                        <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(item.count / activeMemberStats[0].count) * 100}%` }}
+                            transition={{ duration: 0.8, delay: index * 0.1 }}
+                            className="h-full bg-rose-500"
+                          />
+                        </div>
+                      </motion.divma>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Borrowing Trends Chart */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="lg:col-span-2"
+                >
+                  <h2 className="text-xl text-gray-800 hover:text-blue-400 transition duration-300 mb-4">Borrowing Trends</h2>
+                  <Chart
+                    options={{
+                      chart: { type: 'area' },
+                      xaxis: { categories: borrowingTrends.labels },
+                      stroke: { curve: 'smooth' },
+                      fill: { type: 'gradient' },
+                      colors: ['#4F46E5'],
+                      tooltip: { theme: 'light' }
+                    }}
+                    series={[{ name: 'Books Borrowed', data: borrowingTrends.data }]}
+                    type="area"
+                    height={320}
                   />
-                </svg>
-              </a>
+                </motion.div>
+              </div>
             </div>
           )}
+        </motion.div>
 
-          {activeTab === 'services' && (
-            <div>
-              <h2 className="mb-5 text-2xl font-semibold tracking-tight text-gray-900">
-                Our Library Services
-              </h2>
-              <ul className="space-y-4 text-gray-500">
-                {[
-                  'Borrowing and returning digital and physical books',
-                  'Collection search with smart catalog system',
-                  'Online book reservation and booking service',
-                  'Borrowing history and automatic fine report',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <svg
-                      className="shrink-0 w-3.5 h-3.5 text-blue-600"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
-                    </svg>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        {/* Disini */}
 
-          {activeTab === 'statistics' && (
-            <dl className="grid grid-cols-2 gap-8 text-gray-900 sm:grid-cols-3 xl:grid-cols-6">
-              {[
-                { title: '50K+', desc: 'Book available' },
-                { title: '10K+', desc: 'Active member' },
-                { title: '1.2K+', desc: 'Borrowing per month' },
-                { title: '500+', desc: 'E-Book collection' },
-                { title: '95%', desc: 'On-time return rate' },
-                { title: '24/7', desc: 'Online catalog access' },
-              ].map(({ title, desc }, i) => (
-                <div key={i} className="flex flex-col">
-                  <dt className="mb-2 text-3xl font-smeibold">{title}</dt>
-                  <dd className="text-gray-500">{desc}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

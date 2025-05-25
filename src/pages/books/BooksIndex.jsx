@@ -737,7 +737,7 @@ export default function BooksIndex() {
 
 
     return (
-        <div className="min-h-screen">
+        <div className="container min-h-screen p-10">
             {showAlert && (
                 <Alert
                     type={alertConfig.type}

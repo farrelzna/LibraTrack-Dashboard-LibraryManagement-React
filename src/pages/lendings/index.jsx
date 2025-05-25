@@ -7,7 +7,6 @@ import * as XLSX from 'xlsx';
 import Chart from 'react-apexcharts';
 import { API_URL } from '../../constant';
 
-
 const Lendings = () => {
     const [form, setForm] = useState({
         id_buku: '',
@@ -125,38 +124,38 @@ const Lendings = () => {
     const handleSearch = (e) => {
         setSearchQuery(e.target.value);
     };
-    //     if (!searchQuery.trim()) {
-    //         setFilteredData(dataPeminjaman);
-    //         return;
-    //     }
+        // if (!searchQuery.trim()) {
+        //     setFilteredData(dataPeminjaman);
+        //     return;
+        // }
 
-    //     const searchTerm = searchQuery.toLowerCase().trim();
+        // const searchTerm = searchQuery.toLowerCase().trim();
 
-    //     const filtered = dataPeminjaman.filter(item => {
-    //         const book = books.find(b => b.id === item.id_buku);
-    //         const member = members.find(m => m.id === item.id_member);
+        // const filtered = dataPeminjaman.filter(item => {
+        //     const book = books.find(b => b.id === item.id_buku);
+        //     const member = members.find(m => m.id === item.id_member);
 
-    //         // Mencari berdasarkan ID Buku
-    //         const bookIdMatch = String(item.id_buku).toLowerCase().includes(searchTerm);
+        //     // Mencari berdasarkan ID Buku
+        //     const bookIdMatch = String(item.id_buku).toLowerCase().includes(searchTerm);
 
-    //         // Mencari berdasarkan Judul Buku
-    //         const titleMatch = book && book.judul.toLowerCase().includes(searchTerm);
+        //     // Mencari berdasarkan Judul Buku
+        //     const titleMatch = book && book.judul.toLowerCase().includes(searchTerm);
 
-    //         // Mencari berdasarkan ID Member
-    //         const memberIdMatch = String(item.id_member).toLowerCase().includes(searchTerm);
+        //     // Mencari berdasarkan ID Member
+        //     const memberIdMatch = String(item.id_member).toLowerCase().includes(searchTerm);
 
-    //         // Mencari berdasarkan Nama Member
-    //         const nameMatch = member && member.nama.toLowerCase().includes(searchTerm);
+        //     // Mencari berdasarkan Nama Member
+        //     const nameMatch = member && member.nama.toLowerCase().includes(searchTerm);
 
-    //         // Mencari berdasarkan Tanggal
-    //         const dateMatch =
-    //             item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
-    //             item.tgl_pengembalian.toLowerCase().includes(searchTerm);
+        //     // Mencari berdasarkan Tanggal
+        //     const dateMatch =
+        //         item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
+        //         item.tgl_pengembalian.toLowerCase().includes(searchTerm);
 
-    //         return bookIdMatch || titleMatch || memberIdMatch || nameMatch || dateMatch;
-    //     });
+        //     return bookIdMatch || titleMatch || memberIdMatch || nameMatch || dateMatch;
+        // });
 
-    //     setFilteredData(filtered);
+        // setFilteredData(filtered);
     // }, [searchQuery, dataPeminjaman, books, members]);
 
     const handleChange = (e) => {
@@ -481,53 +480,6 @@ const Lendings = () => {
         });
     };
 
-    useEffect(() => {
-        if (!dataPeminjaman.length || !books.length || !members.length) return;
-
-        const today = new Date();
-
-        const filtered = dataPeminjaman.filter(item => {
-            const returnDate = new Date(item.tgl_pengembalian);
-            const isReturnDateValid = !isNaN(returnDate.getTime());
-
-            const belumDikembalikan = item.tgl_kembali === null;
-            const sudahDikembalikan = item.tgl_kembali !== null;
-            const terlambat = isReturnDateValid && today > returnDate;
-
-            switch (filterStatus) {
-                case 'active':
-                    return belumDikembalikan && (!terlambat);
-                case 'late':
-                    return belumDikembalikan && terlambat;
-                case 'returned':
-                    return sudahDikembalikan;
-                case 'all':
-                default:
-                    return true;
-            }
-        });
-
-        const finalFiltered = searchQuery.trim()
-            ? filtered.filter(item => {
-                const searchTerm = searchQuery.toLowerCase();
-                const book = books.find(b => b.id === item.id_buku);
-                const member = members.find(m => m.id === item.id_member);
-
-                return (
-                    String(item.id_buku).toLowerCase().includes(searchTerm) ||
-                    (book && book.judul.toLowerCase().includes(searchTerm)) ||
-                    String(item.id_member).toLowerCase().includes(searchTerm) ||
-                    (member && member.nama.toLowerCase().includes(searchTerm)) ||
-                    item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
-                    item.tgl_pengembalian.toLowerCase().includes(searchTerm)
-                );
-            })
-            : filtered;
-
-        setFilteredData(finalFiltered);
-        setCurrentPage(1);
-    }, [searchQuery, dataPeminjaman, books, members, filterStatus]);
-
     // Add chartOptions state
     const [chartOptions, setChartOptions] = useState({
         chart: {
@@ -623,6 +575,53 @@ const Lendings = () => {
         categories: []
     });
 
+    useEffect(() => {
+        if (!dataPeminjaman.length || !books.length || !members.length) return;
+
+        const today = new Date();
+
+        const filtered = dataPeminjaman.filter(item => {
+            const returnDate = new Date(item.tgl_pengembalian);
+            const isReturnDateValid = !isNaN(returnDate.getTime());
+
+            const belumDikembalikan = item.tgl_kembali === null;
+            const sudahDikembalikan = item.tgl_kembali !== null;
+            const terlambat = isReturnDateValid && today > returnDate;
+
+            switch (filterStatus) {
+                case 'active':
+                    return belumDikembalikan && (!terlambat);
+                case 'late':
+                    return belumDikembalikan && terlambat;
+                case 'returned':
+                    return sudahDikembalikan;
+                case 'all':
+                default:
+                    return true;
+            }
+        });
+
+        const finalFiltered = searchQuery.trim()
+            ? filtered.filter(item => {
+                const searchTerm = searchQuery.toLowerCase();
+                const book = books.find(b => b.id === item.id_buku);
+                const member = members.find(m => m.id === item.id_member);
+
+                return (
+                    String(item.id_buku).toLowerCase().includes(searchTerm) ||
+                    (book && book.judul.toLowerCase().includes(searchTerm)) ||
+                    String(item.id_member).toLowerCase().includes(searchTerm) ||
+                    (member && member.nama.toLowerCase().includes(searchTerm)) ||
+                    item.tgl_pinjam.toLowerCase().includes(searchTerm) ||
+                    item.tgl_pengembalian.toLowerCase().includes(searchTerm)
+                );
+            })
+            : filtered;
+
+        setFilteredData(finalFiltered);
+        setCurrentPage(1);
+    }, [searchQuery, dataPeminjaman, books, members, filterStatus]);
+
     // Add useEffect to process monthly borrowing data
     useEffect(() => {
         if (!dataPeminjaman || dataPeminjaman.length === 0) return;
@@ -679,7 +678,7 @@ const Lendings = () => {
     }, [dataPeminjaman]);
 
     return (
-        <div className="min-h-screen">
+        <div className="container min-h-screen p-10">
             {/* Header Section */}
             <div className="mb-10 bg-white rounded-xl shadow-xs p-10">
                 <h1 className="text-2xl text-gray-800">Book's Lending</h1>
