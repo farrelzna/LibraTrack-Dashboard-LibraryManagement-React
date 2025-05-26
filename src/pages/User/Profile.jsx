@@ -179,7 +179,7 @@ const ProfilePage = () => {
         <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-600 flex items-center justify-center text-white font-medium">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-800 to-blue-600 flex items-center justify-center text-white font-medium">
                 {/* Tidak ada data user nama, jadi kosong saja */}
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -229,7 +229,7 @@ const ProfilePage = () => {
               <div className="col-span-1">
                 <div className="aspect-square w-full bg-white rounded-2xl p-6 flex flex-col justify-between">
                   <div className="space-y-4">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-600 flex items-center justify-center text-white text-2xl font-medium">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-800 to-blue-600 flex items-center justify-center text-white text-2xl font-medium">
                       {/* Karena data user tidak ada, kosong saja */}
                     </div>
                     <div>

@@ -109,19 +109,6 @@ export default function Register() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
             <div className="w-full max-w-5xl bg-white rounded-lg shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
                 <div className="grid grid-cols-1 md:grid-cols-2">
-                    <div className="relative hidden md:block h-full min-h-[600px]">
-                        <img
-                            src="/src/assets/img/image.png"
-                            alt="Library"
-                            className="absolute inset-0 w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/30 to-black/50"></div>
-                        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent">
-                            <h3 className="text-white text-3xl font-bold">Library System</h3>
-                            <p className="text-white/80 mt-2 text-lg">Modern Library Management System</p>
-                        </div>
-                    </div>
-
                     <div className="p-8 lg:p-12 bg-white">
                         <h2 className="text-3xl font-bold text-center text-gray-800 mb-2 animate-fade-in-down">Register</h2>
                         <p className="text-center text-gray-600 mb-8 animate-fade-in-up">Create your library account</p>
@@ -199,6 +186,18 @@ export default function Register() {
                             <p className="text-sm text-gray-600">
                                 Already have an account? <Link to="/" className="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-all duration-200">Sign in</Link>
                             </p>
+                        </div>
+                    </div>
+                    <div className="relative hidden md:block h-full min-h-[600px]">
+                        <img
+                            src="/src/assets/img/1.jpg"
+                            alt="Library"
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/30 to-black/50"></div>
+                        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent">
+                            <h3 className="text-white text-3xl font-bold">Library System</h3>
+                            <p className="text-white/80 mt-2 text-lg">Modern Library Management System</p>
                         </div>
                     </div>
                 </div>

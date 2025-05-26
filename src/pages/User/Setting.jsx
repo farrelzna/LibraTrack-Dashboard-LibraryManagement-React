@@ -335,7 +335,7 @@ const SettingsPage = () => {
                               : ''}`}
                             style={{
                               backgroundColor: integration.status !== 'Connected' ? accentColor : '',
-                              color: integration.status !== 'Connected' ? 'white' : ''
+                              color: integration.status !== 'Connected' ? 'white' : 'white'
                             }}
                           >
                             {integration.status === 'Connected' ? 'Disconnect' : 'Connect'}

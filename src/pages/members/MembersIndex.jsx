@@ -61,13 +61,13 @@ export default function MemberManagement() {
 
   const fetchMembers = () => {
     const getToken = localStorage.getItem("token");
+    setIsLoading(true); // Set loading to true before fetch
     axios
       .get(`${API_URL}member`, {
         headers: { Authorization: `Bearer ${getToken}` },
       })
       .then((res) => {
-        // console.log("Response API:", res.data); // Debug
-        setMembers(res.data); // Fix struktur
+        setMembers(res.data);
       })
       .catch((err) => {
         if (err.response?.status === 401) {
@@ -75,6 +75,9 @@ export default function MemberManagement() {
         } else {
           setError(err.response?.data || {});
         }
+      })
+      .finally(() => {
+        setIsLoading(false); // Set loading to false after fetch completes
       });
   };
 
@@ -363,7 +366,7 @@ export default function MemberManagement() {
       setIsLoading(false);
     }
   };
-
+  
   const GridView = ({ members, handleDetail, handleEdit, handleDelete, selectedRows, setSelectedRows }) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 p-5 gap-6">
@@ -669,473 +672,480 @@ export default function MemberManagement() {
   }, []);
 
   return (
-    <div className=" container min-h-screen p-10">
-      {showAlert && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-          <Alert
-            type={alertConfig.type}
-            message={alertConfig.message}
-            onClose={() => setShowAlert(false)}
-          />
+    <div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-      )}
-      {showAlert && (
-        <div className="fixed bottom-0 right-2/3 transform z-50">
-          <Alert
-            type={alertConfig.type}
-            message={alertConfig.message}
-            onClose={() => setShowAlert(false)}
-          />
-        </div>
-      )}
-      {/* Header Section */}
-      <div className="mb-8 p-10 bg-white rounded-xl shadow-xs h-35">
-        <h1 className="text-2xl text-gray-800 tracking-tight">Member's Management</h1>
-        <p className="text-xs text-gray-700 z-10">
-          Manage your library member account
-        </p>
-      </div>
-
-      <div className="mx-auto">
-        {/* Header Section with Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-xs p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-600">Total Members</p>
-                <h3 className="text-xl font-bold text-gray-800">{calculateStats().total}</h3>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
+      ) : (
+        <div className=" container min-h-screen p-10">
+          {showAlert && (
+            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+              <Alert
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={() => setShowAlert(false)}
+              />
             </div>
-            <p className="text-xs text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
+          )}
+          {showAlert && (
+            <div className="fixed bottom-0 right-2/3 transform z-50">
+              <Alert
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={() => setShowAlert(false)}
+              />
+            </div>
+          )}
+          {/* Header Section */}
+          <div className="mb-8 p-10 bg-white rounded-xl shadow-xs h-35">
+            <h1 className="text-2xl text-gray-800 tracking-tight">Member's Management</h1>
+            <p className="mt-2 text-xs text-gray-700 z-10">
+              Manage your library member account
+            </p>
           </div>
 
-          <div className="relative w-full h-30 rounded-xl overflow-hidden">
-            {/* Slides */}
-            <div className="relative h-56 md:h-96">
-              {images.map((img, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-opacity duration-700 ${index === current ? 'opacity-100' : 'opacity-0'
-                    }`}
+
+          {/* Header Section with Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 my-10 gap-6">
+            <div className="bg-white rounded-xl shadow-xs p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-600">Total Members</p>
+                  <h3 className="text-xl font-bold text-gray-800">{calculateStats().total}</h3>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-xs text-green-600 mt-2">+{calculateStats().newThisMonth} new this month</p>
+            </div>
+
+            <div className="relative w-full h-30 rounded-xl overflow-hidden">
+              {/* Slides */}
+              <div className="relative h-56 md:h-96">
+                {images.map((img, index) => (
+                  <div
+                    key={index}
+                    className={`absolute inset-0 transition-opacity duration-700 ${index === current ? 'opacity-100' : 'opacity-0'
+                      }`}
+                  >
+                    <img
+                      src={img}
+                      alt={`Slide ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+                <div className="absolute left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                  <h3 className="text-white text-3xl font-bold">Library System</h3>
+                  <p className="text-white/80 mt-2 text-lg">Modern Library Management System</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Bar */}
+          <div className="bg-white rounded-xl shadow-xs my-10">
+            <div className="flex flex-wrap items-center p-4 justify-between gap-4">
+              <div className="flex-1 min-w-[60px] max-w-md">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search members..."
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleViewChange('table')}
+                  className={`p-2 rounded-lg ${view === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
                 >
-                  <img
-                    src={img}
-                    alt={`Slide ${index + 1}`}
-                    className="w-full h-full object-cover"
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => handleViewChange('grid')}
+                  className={`p-2 rounded-lg ${view === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center text-xs gap-2">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => handleFilterStatusChange(e)}
+                  className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Members</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => handleDateRangeChange('start', e.target.value)}
+                    className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <span>to</span>
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => handleDateRangeChange('end', e.target.value)}
+                    className="px-3 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-              ))}
-              <div className="absolute left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                <h3 className="text-white text-3xl font-bold">Library System</h3>
-                <p className="text-white/80 mt-2 text-lg">Modern Library Management System</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Action Bar */}
-        <div className="bg-white rounded-xl shadow-xs my-10">
-          <div className="flex flex-wrap items-center p-4 justify-between gap-4">
-            <div className="flex-1 min-w-[60px] max-w-md">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search members..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handleViewChange('table')}
-                className={`p-2 rounded-lg ${view === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-              </button>
-              <button
-                onClick={() => handleViewChange('grid')}
-                className={`p-2 rounded-lg ${view === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex flex-wrap items-center text-xs gap-2">
-              <select
-                value={filterStatus}
-                onChange={(e) => handleFilterStatusChange(e)}
-                className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Members</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => handleDateRangeChange('start', e.target.value)}
-                  className="px-3 py-2 bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-                <span>to</span>
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => handleDateRangeChange('end', e.target.value)}
-                  className="px-3 py-2 text-xs bg-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="dropdown relative">
-                <button
-                  onClick={() => setShowExportDropdown(!showExportDropdown)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="text-xs">Export</span>
-                </button>
-                <div
-                  className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'
-                    }`}
-                >
+                <div className="dropdown relative">
                   <button
-                    onClick={() => {
-                      handleExportData('csv');
-                      setShowExportDropdown(false);
-                    }}
-                    className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Export as CSV
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleExportData('excel');
-                      setShowExportDropdown(false);
-                    }}
-                    className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Export as Excel
-                  </button>
-                </div>
-              </div>
-
-
-              {selectedRows.length > 0 && (
-                <button
-                  onClick={handleBulkDelete}
-                  className="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
-                >
-                  Delete Selected ({selectedRows.length})
-                </button>
-              )}
-              {/* Add this after the view toggle buttons in the Action Bar */}
-              <button
-                onClick={() => {
-                  setIsModalOpen(true);
-                  setIsEditMode(false);
-                  setFormModal({
-                    no_ktp: "",
-                    nama: "",
-                    alamat: "",
-                    tgl_lahir: "",
-                  });
-                }}
-                className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
-                style={{ width: '150px' }}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add New Member
-              </button>
-            </div>
-          </div>
-
-          {/* Existing table code with new features */}
-          {view === 'table' ? (
-            <TableView
-              members={paginatedMembers}
-              handleDetail={fetchMemberDetail}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-              selectedRows={selectedRows}
-              setSelectedRows={setSelectedRows}
-              sortConfig={sortConfig}
-              requestSort={requestSort}
-            />
-          ) : (
-            <GridView
-              members={paginatedMembers}
-              handleDetail={fetchMemberDetail}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-              selectedRows={selectedRows}
-              setSelectedRows={setSelectedRows}
-            />
-          )}
-
-          <div className="px-6 py-4 border-t border-gray-200 pt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-700">Show</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-                <span className="text-xs text-gray-700">Entries</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="text-xs text-gray-700">
-                  Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredMembers.length)} of {filteredMembers.length} entries
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
+                    <span className="text-xs">Export</span>
                   </button>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  <div
+                    className={`dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ${showExportDropdown ? 'block' : 'hidden'
+                      }`}
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+                    <button
+                      onClick={() => {
+                        handleExportData('csv');
+                        setShowExportDropdown(false);
+                      }}
+                      className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Export as CSV
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleExportData('excel');
+                        setShowExportDropdown(false);
+                      }}
+                      className="block w-full text-xs text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Export as Excel
+                    </button>
+                  </div>
+                </div>
 
-                  {/* Page Numbers */}
-                  <div className="flex items-center gap-1">
-                    {[...Array(Math.min(5, Math.ceil(filteredMembers.length / pageSize)))].map((_, index) => {
-                      const pageNumber = index + 1;
-                      return (
-                        <button
-                          key={pageNumber}
-                          onClick={() => setCurrentPage(pageNumber)}
-                          className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white border border-gray-300 hover:bg-gray-50'
-                            }`}
-                        >
-                          {pageNumber}
-                        </button>
-                      );
-                    })}
-                    {Math.ceil(filteredMembers.length / pageSize) > 5 && (
-                      <span className="px-2 text-gray-500">...</span>
-                    )}
+
+                {selectedRows.length > 0 && (
+                  <button
+                    onClick={handleBulkDelete}
+                    className="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
+                  >
+                    Delete Selected ({selectedRows.length})
+                  </button>
+                )}
+                {/* Add this after the view toggle buttons in the Action Bar */}
+                <button
+                  onClick={() => {
+                    setIsModalOpen(true);
+                    setIsEditMode(false);
+                    setFormModal({
+                      no_ktp: "",
+                      nama: "",
+                      alamat: "",
+                      tgl_lahir: "",
+                    });
+                  }}
+                  className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs rounded-lg hover:from-blue-700 hover:to-blue-600 transition-colors flex items-center justify-center gap-2"
+                  style={{ width: '150px' }}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add New Member
+                </button>
+              </div>
+            </div>
+
+            {/* Existing table code with new features */}
+            {view === 'table' ? (
+              <TableView
+                members={paginatedMembers}
+                handleDetail={fetchMemberDetail}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                selectedRows={selectedRows}
+                setSelectedRows={setSelectedRows}
+                sortConfig={sortConfig}
+                requestSort={requestSort}
+              />
+            ) : (
+              <GridView
+                members={paginatedMembers}
+                handleDetail={fetchMemberDetail}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                selectedRows={selectedRows}
+                setSelectedRows={setSelectedRows}
+              />
+            )}
+
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-700">Show</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                    className="px-2 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                  <span className="text-xs text-gray-700">Entries</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="text-xs text-gray-700">
+                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredMembers.length)} of {filteredMembers.length} entries
                   </div>
 
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredMembers.length / pageSize)))}
-                    disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
-                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(Math.ceil(filteredMembers.length / pageSize))}
-                    disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
-                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1">
+                      {[...Array(Math.min(5, Math.ceil(filteredMembers.length / pageSize)))].map((_, index) => {
+                        const pageNumber = index + 1;
+                        return (
+                          <button
+                            key={pageNumber}
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className={`px-3 py-1 text-xs rounded-lg ${currentPage === pageNumber
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white border border-gray-300 hover:bg-gray-50'
+                              }`}
+                          >
+                            {pageNumber}
+                          </button>
+                        );
+                      })}
+                      {Math.ceil(filteredMembers.length / pageSize) > 5 && (
+                        <span className="px-2 text-gray-500">...</span>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredMembers.length / pageSize)))}
+                      disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
+                      className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(Math.ceil(filteredMembers.length / pageSize))}
+                      disabled={currentPage >= Math.ceil(filteredMembers.length / pageSize)}
+                      className="px-2 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Detail Modal */}
-        <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} title="Member Details">
-          {selectedMember ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-xs text-gray-500">Id Number</p>
-                  <p className="font-medium">{selectedMember.no_ktp}</p>
+          {/* Detail Modal */}
+          <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} title="Member Details">
+            {selectedMember ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-2 bg-gray-50 rounded">
+                    <p className="text-xs text-gray-500">Id Number</p>
+                    <p className="font-medium">{selectedMember.no_ktp}</p>
+                  </div>
+                  <div className="p-2 bg-gray-50 rounded">
+                    <p className="text-xs text-gray-500">Name</p>
+                    <p className="font-medium">{selectedMember.nama}</p>
+                  </div>
+                  <div className="p-2 bg-gray-50 rounded">
+                    <p className="text-xs text-gray-500">Address</p>
+                    <p className="font-medium">{selectedMember.alamat}</p>
+                  </div>
+                  <div className="p-2 bg-gray-50 rounded">
+                    <p className="text-xs text-gray-500">Birth Date</p>
+                    <p className="font-medium">{selectedMember.tgl_lahir}</p>
+                  </div>
                 </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-xs text-gray-500">Name</p>
-                  <p className="font-medium">{selectedMember.nama}</p>
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-xs text-gray-500">Address</p>
-                  <p className="font-medium">{selectedMember.alamat}</p>
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-xs text-gray-500">Birth Date</p>
-                  <p className="font-medium">{selectedMember.tgl_lahir}</p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setIsDetailModalOpen(false)}
+                    className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
-              <div className="flex justify-end">
+            ) : (
+              <p>Loading...</p>
+            )}
+          </Modal>
+
+          {/* Add/Edit Modal */}
+          <Modal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setFormModal({
+                no_ktp: "",
+                nama: "",
+                alamat: "",
+                tgl_lahir: "",
+              });
+            }}
+            title={isEditMode ? "Edit Member" : "Add New Member"}
+          >
+            <form onSubmit={isEditMode ? handleSubmitModal : handleCreateMember} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium max-w-xs truncate text-gray-700">Name</label>
+                  <input
+                    type="text"
+                    name="nama"
+                    value={formModal.nama}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">ID Number</label>
+                  <input
+                    type="text"
+                    name="no_ktp"
+                    value={formModal.no_ktp}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">Address</label>
+                  <input
+                    type="text"
+                    name="alamat"
+                    value={formModal.alamat}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">Birth Date</label>
+                  <input
+                    type="date"
+                    name="tgl_lahir"
+                    value={formModal.tgl_lahir}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
                 <button
-                  onClick={() => setIsDetailModalOpen(false)}
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setFormModal({
+                      no_ktp: "",
+                      nama: "",
+                      alamat: "",
+                      tgl_lahir: "",
+                    });
+                  }}
+                  className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : isEditMode ? "Update Members" : "Create Members"}
+                </button>
+              </div>
+            </form>
+          </Modal>
+
+          {/* Delete Confirmation Modal */}
+          <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Confirmation">
+            <div className="space-y-4">
+              <p className="text-gray-600">Are you sure you want to delete this member?</p>
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
                   className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                 >
-                  Close
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+                >
+                  Delete
                 </button>
               </div>
             </div>
-          ) : (
-            <p>Loading...</p>
-          )}
-        </Modal>
-
-        {/* Add/Edit Modal */}
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setFormModal({
-              no_ktp: "",
-              nama: "",
-              alamat: "",
-              tgl_lahir: "",
-            });
-          }}
-          title={isEditMode ? "Edit Member" : "Add New Member"}
-        >
-          <form onSubmit={isEditMode ? handleSubmitModal : handleCreateMember} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium max-w-xs truncate text-gray-700">Name</label>
-                <input
-                  type="text"
-                  name="nama"
-                  value={formModal.nama}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700">ID Number</label>
-                <input
-                  type="text"
-                  name="no_ktp"
-                  value={formModal.no_ktp}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700">Address</label>
-                <input
-                  type="text"
-                  name="alamat"
-                  value={formModal.alamat}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700">Birth Date</label>
-                <input
-                  type="date"
-                  name="tgl_lahir"
-                  value={formModal.tgl_lahir}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setFormModal({
-                    no_ktp: "",
-                    nama: "",
-                    alamat: "",
-                    tgl_lahir: "",
-                  });
-                }}
-                className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : isEditMode ? "Update Members" : "Create Members"}
-              </button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* Delete Confirmation Modal */}
-        <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Confirmation">
-          <div className="space-y-4">
-            <p className="text-gray-600">Are you sure you want to delete this member?</p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </Modal>
-      </div>
+          </Modal>
+        </div>
+      )}
     </div>
   );
 }
