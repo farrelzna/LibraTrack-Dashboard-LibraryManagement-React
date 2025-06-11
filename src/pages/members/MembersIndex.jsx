@@ -175,7 +175,24 @@ export default function MemberManagement() {
   };
 
   const handleInputChange = (e) => {
-    setFormModal({ ...formModal, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Special validation for no_ktp field
+    if (name === 'no_ktp') {
+      // Only allow numbers and limit to 16 digits
+      const numbersOnly = value.replace(/[^\d]/g, '');
+      if (numbersOnly.length <= 16) {
+        setFormModal(prev => ({
+          ...prev,
+          [name]: numbersOnly
+        }));
+      }
+    } else {
+      setFormModal(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const fetchMemberDetail = (id) => {
@@ -1061,6 +1078,9 @@ export default function MemberManagement() {
                     name="no_ktp"
                     value={formModal.no_ktp}
                     onChange={handleInputChange}
+                    maxLength={16}
+                    pattern="[0-9]*"
+                    title="Please enter numbers only (maximum 16 digits)"
                     className="mt-1 block w-full p-2 rounded-md bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
                     required
                   />

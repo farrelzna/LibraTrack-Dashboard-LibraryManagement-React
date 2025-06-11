@@ -407,7 +407,7 @@ const Lendings = () => {
             return {
                 'Lending ID': item.id,
                 'Book ID': item.id_buku,
-                'Book Title': book ? book.judul : 'N/A', vcmv,
+                'Book Title': book ? book.judul : 'N/A',
                 'Member ID': item.id_member,
                 'Member Name': member ? member.nama : 'N/A',
                 'Borrow Date': item.tgl_pinjam,

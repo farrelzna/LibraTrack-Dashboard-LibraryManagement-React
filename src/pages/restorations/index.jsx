@@ -371,10 +371,37 @@ const Restorations = () => {
             };
         });
 
+        // Calculate summaries
+        const summaries = dendaData.reduce((acc, item) => {
+            const amount = parseFloat(item.jumlah_denda.replace(/[^0-9.-]+/g, ''));
+            if (item.jenis_denda === 'defect') {
+                acc.defectTotal += amount;
+            } else if (item.jenis_denda === 'late') {
+                acc.lateTotal += amount;
+            } else {
+                acc.otherTotal += amount;
+            }
+            return acc;
+        }, { defectTotal: 0, lateTotal: 0, otherTotal: 0 });
+
+        const grandTotal = summaries.defectTotal + summaries.lateTotal + summaries.otherTotal;
+
+        // Add empty row and summary section
+        const summaryData = [
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': '', 'Book ID': '', 'Book Title': '', 'Fine Amount': '', 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'SUMMARY', 'Book ID': '', 'Book Title': '', 'Fine Amount': '', 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Defect Total', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(summaries.defectTotal), 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Late Total', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(summaries.lateTotal), 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Other Total', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(summaries.otherTotal), 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'GRAND TOTAL', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(grandTotal), 'Fine Type': '', 'Description': '' }
+        ];
+
+        const finalExportData = [...exportData, ...summaryData];
+
         if (type === 'csv') {
             // Export as CSV
-            const headers = Object.keys(exportData[0]).join(',');
-            const csvData = exportData.map(row => Object.values(row).join(',')).join('\n');
+            const headers = Object.keys(finalExportData[0]).join(',');
+            const csvData = finalExportData.map(row => Object.values(row).join(',')).join('\n');
             const blob = new Blob([`${headers}\n${csvData}`], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -386,7 +413,7 @@ const Restorations = () => {
             window.URL.revokeObjectURL(url);
         } else if (type === 'excel') {
             // Export as Excel
-            const ws = XLSX.utils.json_to_sheet(exportData);
+            const ws = XLSX.utils.json_to_sheet(finalExportData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Restorations');
             XLSX.writeFile(wb, `restorations_export_${new Date().toISOString().split('T')[0]}.xlsx`);
