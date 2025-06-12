@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 import Swal from 'sweetalert2';
@@ -20,6 +20,13 @@ const MemberHistory = () => {
     const [groupedLendings, setGroupedLendings] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
 
+    // Tambahkan state untuk sort dan filter
+    const [sortConfig, setSortConfig] = useState({
+        key: 'totalFines',
+        direction: 'descending'
+    });
+    const [filterStatus, setFilterStatus] = useState('all');
+
     // Calculate pagination values
     const indexOfLastItem = currentPage * pageSize;
     const indexOfFirstItem = indexOfLastItem - pageSize;
@@ -40,6 +47,58 @@ const MemberHistory = () => {
         }
         setCurrentPage(1); // Reset to first page when search changes
     }, [groupedLendings, searchQuery]);
+
+    // Update useEffect untuk filter dan sort
+    useEffect(() => {
+        let filtered = [...groupedLendings];
+
+        // Apply status filter
+        if (filterStatus !== 'all') {
+            filtered = filtered.filter(member => {
+                return member.fines.some(fine => {
+                    switch (filterStatus) {
+                        case 'active':
+                            return fine.jenis_denda === 'kerusakan';
+                        case 'late':
+                            return fine.jenis_denda === 'terlambat';
+                        case 'returned':
+                            return fine.jenis_denda === 'lainnya';
+                        default:
+                            return true;
+                    }
+                });
+            });
+        }
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+            filtered = filtered.filter(member =>
+                member.memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                member.memberNumberID.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Apply sorting
+        filtered.sort((a, b) => {
+            if (sortConfig.key === 'totalFines') {
+                return sortConfig.direction === 'descending'
+                    ? b.totalFines - a.totalFines
+                    : a.totalFines - b.totalFines;
+            }
+            return 0;
+        });
+
+        setFilteredMembers(filtered);
+        setCurrentPage(1);
+    }, [groupedLendings, searchQuery, sortConfig, filterStatus]);
+
+    // Fungsi untuk mengubah sort
+    const handleSort = () => {
+        setSortConfig(prev => ({
+            key: 'totalFines',
+            direction: prev.direction === 'ascending' ? 'descending' : 'ascending'
+        }));
+    };
 
     // Function to handle page changes
     const handlePageChange = (pageNumber) => {
@@ -288,8 +347,8 @@ const MemberHistory = () => {
                             {/* Content Section */}
                             <div className="p-8">
                                 {/* Search Bar */}
-                                <div className="mb-6">
-                                    <div className="relative">
+                                <div className="mb-6 flex items-center justify-between gap-4">
+                                    <div className="relative w-full">
                                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                             <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
@@ -302,6 +361,22 @@ const MemberHistory = () => {
                                             value={searchQuery}
                                             onChange={handleSearchChange}
                                         />
+                                    </div>
+                                    <div className="relative gap-2">
+                                        {/* Tambahkan tombol sort */}
+                                        <button
+                                            onClick={handleSort}
+                                            className="px-4 py-2 text-xs bg-gradient-to-br from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:bg-gray-200 flex items-center space-x-2"
+                                        >
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                {sortConfig.direction === 'descending' ? (
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                ) : (
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+                                                )}
+                                            </svg>
+                                            <span>Sort by Amount {sortConfig.direction === 'descending' ? '(High to Low)' : '(Low to High)'}</span>
+                                        </button>
                                     </div>
                                 </div>
                                 {lendingData.length === 0 ? (

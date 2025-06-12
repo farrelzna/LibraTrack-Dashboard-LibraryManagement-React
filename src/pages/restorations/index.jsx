@@ -371,29 +371,37 @@ const Restorations = () => {
             };
         });
 
-        // Calculate summaries
+        // Calculate summaries with counts
         const summaries = dendaData.reduce((acc, item) => {
             const amount = parseFloat(item.jumlah_denda.replace(/[^0-9.-]+/g, ''));
-            if (item.jenis_denda === 'defect') {
-                acc.defectTotal += amount;
-            } else if (item.jenis_denda === 'late') {
-                acc.lateTotal += amount;
-            } else {
-                acc.otherTotal += amount;
+            if (item.jenis_denda === 'kerusakan') {
+                acc.kerusakanTotal += amount;
+                acc.kerusakanCount += 1;
+            } else if (item.jenis_denda === 'terlambat') {
+                acc.terlambatTotal += amount;
+                acc.terlambatCount += 1;
+            } else if (item.jenis_denda === 'lainnya') {
+                acc.lainnyaTotal += amount;
+                acc.lainnyaCount += 1;
             }
             return acc;
-        }, { defectTotal: 0, lateTotal: 0, otherTotal: 0 });
+        }, { 
+            kerusakanTotal: 0, kerusakanCount: 0,
+            terlambatTotal: 0, terlambatCount: 0,
+            lainnyaTotal: 0, lainnyaCount: 0
+        });
 
-        const grandTotal = summaries.defectTotal + summaries.lateTotal + summaries.otherTotal;
+        const grandTotal = summaries.kerusakanTotal + summaries.terlambatTotal + summaries.lainnyaTotal;
+        const totalCount = summaries.kerusakanCount + summaries.terlambatCount + summaries.lainnyaCount;
 
         // Add empty row and summary section
         const summaryData = [
             { 'Fine ID': '', 'Member ID': '', 'Member Name': '', 'Book ID': '', 'Book Title': '', 'Fine Amount': '', 'Fine Type': '', 'Description': '' },
             { 'Fine ID': '', 'Member ID': '', 'Member Name': 'SUMMARY', 'Book ID': '', 'Book Title': '', 'Fine Amount': '', 'Fine Type': '', 'Description': '' },
-            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Defect Total', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(summaries.defectTotal), 'Fine Type': '', 'Description': '' },
-            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Late Total', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(summaries.lateTotal), 'Fine Type': '', 'Description': '' },
-            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Other Total', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(summaries.otherTotal), 'Fine Type': '', 'Description': '' },
-            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'GRAND TOTAL', 'Book ID': '', 'Book Title': '', 'Fine Amount': formatRupiah(grandTotal), 'Fine Type': '', 'Description': '' }
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Kerusakan Total', 'Book ID': `(${summaries.kerusakanCount} items)`, 'Book Title': '', 'Fine Amount': formatRupiah(summaries.kerusakanTotal), 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Terlambat Total', 'Book ID': `(${summaries.terlambatCount} items)`, 'Book Title': '', 'Fine Amount': formatRupiah(summaries.terlambatTotal), 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'Lainnya Total', 'Book ID': `(${summaries.lainnyaCount} items)`, 'Book Title': '', 'Fine Amount': formatRupiah(summaries.lainnyaTotal), 'Fine Type': '', 'Description': '' },
+            { 'Fine ID': '', 'Member ID': '', 'Member Name': 'GRAND TOTAL', 'Book ID': `(${totalCount} items)`, 'Book Title': '', 'Fine Amount': formatRupiah(grandTotal), 'Fine Type': '', 'Description': '' }
         ];
 
         const finalExportData = [...exportData, ...summaryData];

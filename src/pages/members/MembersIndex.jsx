@@ -215,6 +215,14 @@ export default function MemberManagement() {
     if (!sortConfig.key) return members;
 
     return [...members].sort((a, b) => {
+      if (sortConfig.key === 'no_ktp') {
+        // Extract numeric values for comparison
+        const aNum = parseInt(a[sortConfig.key].replace(/[^0-9]/g, ''));
+        const bNum = parseInt(b[sortConfig.key].replace(/[^0-9]/g, ''));
+        return sortConfig.direction === 'ascending' ? aNum - bNum : bNum - aNum;
+      }
+
+      // For other fields, use string comparison
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === 'ascending' ? -1 : 1;
       }
